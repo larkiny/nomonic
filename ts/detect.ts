@@ -30,6 +30,15 @@ function stripToken(token: string): string | null | 'skip' {
 }
 
 /**
+ * Annotation tokens commonly used to label seed phrase words.
+ * Treated as transparent (SKIP) in both single-line and cross-line detection.
+ */
+const ANNOTATION_TOKENS = new Set([
+  'word', 'words', 'mnemonic', 'seed', 'phrase',
+  'key', 'backup', 'recovery', 'secret', 'passphrase',
+])
+
+/**
  * Analyze a single line's tokens and return the BIP39 words found,
  * along with whether the line is "BIP39-pure" (every non-skip token is BIP39).
  */
@@ -54,6 +63,9 @@ function analyzeLine(line: string): {
     const stripped = stripToken(token)
 
     if (stripped === 'skip') continue // numbering, punctuation — ignore
+
+    // Annotation tokens (word, mnemonic, seed, etc.) — treat as transparent
+    if (stripped !== null && ANNOTATION_TOKENS.has(stripped)) continue
 
     hasAnyWord = true
     if (stripped !== null && BIP39_WORDS.has(stripped)) {
@@ -110,6 +122,9 @@ export function detectBip39Sequences(
       const stripped = stripToken(tokens[j])
 
       if (stripped === 'skip') continue
+
+      // Annotation tokens — transparent, don't break or contribute to sequence
+      if (stripped !== null && ANNOTATION_TOKENS.has(stripped)) continue
 
       if (stripped !== null && BIP39_WORDS.has(stripped)) {
         consecutive++

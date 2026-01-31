@@ -186,9 +186,9 @@ wallet.connect()`
     const result = detectBip39Sequences(tsContent)
     expect(result).toHaveLength(1)
     expect(result[0].lineNumber).toBe(3)
-    // "//", "test", "wallet" are not BIP39/not alpha-only; "seed" IS BIP39
-    // so: seed abandon ability able about above absent absorb abstract = 9
-    expect(result[0].matchedWords).toHaveLength(9)
+    // "//", "test", "wallet" are not BIP39/not alpha-only; "seed" is an annotation token (skipped)
+    // so: abandon ability able about above absent absorb abstract = 8
+    expect(result[0].matchedWords).toHaveLength(8)
   })
 
   it('detects JSON array with BIP39 words after stripping punctuation', () => {

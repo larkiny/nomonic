@@ -379,4 +379,83 @@ describe('detectBip39Sequences', () => {
     expect(result).toHaveLength(1)
     expect(result[0].matchedWords).toHaveLength(12)
   })
+
+  // ── Annotation tokens ────────────────────────────────────────────
+
+  it('detects cross-line seed phrase with "Word N:" annotations', () => {
+    const content = [
+      'Word 1: abandon',
+      'Word 2: ability',
+      'Word 3: able',
+      'Word 4: about',
+      'Word 5: above',
+    ].join('\n')
+    const result = detectBip39Sequences(content)
+    expect(result).toHaveLength(1)
+    expect(result[0].matchedWords).toEqual([
+      'abandon',
+      'ability',
+      'able',
+      'about',
+      'above',
+    ])
+  })
+
+  it('detects single-line seed phrase with annotation tokens', () => {
+    const result = detectBip39Sequences(
+      'mnemonic: abandon ability able about above'
+    )
+    expect(result).toHaveLength(1)
+    expect(result[0].matchedWords).toEqual([
+      'abandon',
+      'ability',
+      'able',
+      'about',
+      'above',
+    ])
+  })
+
+  it('does NOT flag prose that happens to contain annotation tokens', () => {
+    const content = [
+      'the recovery process for abandon',
+      'requires ability to able',
+      'check about the above',
+    ].join('\n')
+    const result = detectBip39Sequences(content)
+    expect(result).toEqual([])
+  })
+
+  it('detects cross-line seed phrase with varied annotation labels', () => {
+    const content = [
+      'Recovery phrase:',
+      'abandon',
+      'ability',
+      'able',
+      'about',
+      'above',
+    ].join('\n')
+    const result = detectBip39Sequences(content)
+    expect(result).toHaveLength(1)
+    expect(result[0].matchedWords).toEqual([
+      'abandon',
+      'ability',
+      'able',
+      'about',
+      'above',
+    ])
+  })
+
+  it('treats "seed" as annotation token even though it is BIP39', () => {
+    const result = detectBip39Sequences(
+      'seed abandon ability able about above'
+    )
+    expect(result).toHaveLength(1)
+    expect(result[0].matchedWords).toEqual([
+      'abandon',
+      'ability',
+      'able',
+      'about',
+      'above',
+    ])
+  })
 })
