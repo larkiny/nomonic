@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# BIP39 Seed Phrase Repository Scanner
+# nomonic — BIP39 Seed Phrase Repository Scanner
 # Scans all files in a repository for sequences of 5+ consecutive BIP39 mnemonic words.
 # Usage: bash/scan-repo.sh [--git | --dir <path>] [--include-lockfiles] [--threshold <n>]
 # Portable: Bash 3.2+ (macOS default) and git. No other dependencies.

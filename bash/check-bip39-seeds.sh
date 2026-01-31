@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# BIP39 Seed Phrase Pre-Commit Guard
+# nomonic — BIP39 Seed Phrase Pre-Commit Guard
 # Detects sequences of 5+ consecutive BIP39 mnemonic words in staged files.
 # Usage: Add to .husky/pre-commit or run manually before committing.
 # Portable: Bash 3.2+ (macOS default) and git. No other dependencies.

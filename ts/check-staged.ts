@@ -109,7 +109,7 @@ export function buildContentBlock(addedLines: AddedLine[]): ContentBlock {
       i > 0 &&
       addedLines[i].fileLineNumber !== addedLines[i - 1].fileLineNumber + 1
     ) {
-      contentLines.push("---bip39-guard-sentinel---");
+      contentLines.push("---nomonic-sentinel---");
       lineMap.push(-1);
     }
     contentLines.push(addedLines[i].text);

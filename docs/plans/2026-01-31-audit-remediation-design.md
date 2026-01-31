@@ -164,7 +164,7 @@ The existing test at line 96 checks that an empty string is inserted. Update it 
       { fileLineNumber: 50, text: 'ability' },
     ])
     // Gap between line 5 and 50 → sentinel line inserted
-    expect(result.content).toBe('abandon\n---bip39-guard-sentinel---\nability')
+    expect(result.content).toBe('abandon\n---nomonic-sentinel---\nability')
     expect(result.lineMap).toEqual([5, -1, 50])
   })
 ```
@@ -189,7 +189,7 @@ At line 109, change:
 ```
 to:
 ```typescript
-      contentLines.push('---bip39-guard-sentinel---')
+      contentLines.push('---nomonic-sentinel---')
 ```
 
 **Step 2: Run tests to verify they pass**

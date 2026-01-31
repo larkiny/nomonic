@@ -99,7 +99,7 @@ describe('buildContentBlock', () => {
       { fileLineNumber: 50, text: 'ability' },
     ])
     // Gap between line 5 and 50 → non-empty sentinel line inserted
-    expect(result.content).toBe('abandon\n---bip39-guard-sentinel---\nability')
+    expect(result.content).toBe('abandon\n---nomonic-sentinel---\nability')
     expect(result.lineMap).toEqual([5, -1, 50])
   })
 

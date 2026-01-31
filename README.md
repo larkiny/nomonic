@@ -1,4 +1,4 @@
-# bip39-guard
+# nomonic
 
 Pre-commit hook that detects BIP39 mnemonic seed phrases in staged files and blocks the commit. Prevents accidental secret leaks that have historically led to exploits in the Algorand ecosystem.
 
@@ -7,7 +7,7 @@ Pre-commit hook that detects BIP39 mnemonic seed phrases in staged files and blo
 Run this from your project root:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/algorandfoundation/bip39-guard/main/setup.sh | bash
+curl -fsSL https://raw.githubusercontent.com/algorandfoundation/nomonic/main/setup.sh | bash
 ```
 
 That's it. The script will:
@@ -21,7 +21,7 @@ That's it. The script will:
 
 BIP39 mnemonic phrases are the master keys to cryptocurrency wallets. Anyone who obtains a seed phrase has full, irreversible access to all funds in that wallet. Developers working on blockchain projects routinely handle seed phrases during testing, wallet integration, and key management — and a single accidental `git commit` can expose them in version history permanently (even if the file is deleted later, it remains in git's object store).
 
-This has happened in the Algorand ecosystem and across the broader crypto space. bip39-guard acts as a safety net: a pre-commit hook that catches seed phrases before they enter version control.
+This has happened in the Algorand ecosystem and across the broader crypto space. nomonic acts as a safety net: a pre-commit hook that catches seed phrases before they enter version control.
 
 ## How It Works
 
@@ -39,7 +39,7 @@ This catches standard 12/24-word BIP39 mnemonics as well as legacy 25-word Algor
 
 ## Limitations
 
-bip39-guard is a best-effort safety net, not a guarantee. Known limitations:
+nomonic is a best-effort safety net, not a guarantee. Known limitations:
 
 - **Only detects English BIP39 words** — BIP39 defines wordlists for multiple languages (Japanese, Spanish, Chinese, etc.). This tool only checks the English list.
 - **Pre-commit hook is bypassable** — `git commit --no-verify` skips all hooks. The full-repo scanner (`scan-repo`) can be used in CI to catch what hooks miss.
@@ -128,7 +128,7 @@ git commit --no-verify
 Re-run the setup command to pull the latest detector files:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/algorandfoundation/bip39-guard/main/setup.sh | bash
+curl -fsSL https://raw.githubusercontent.com/algorandfoundation/nomonic/main/setup.sh | bash
 ```
 
 The script is idempotent — it won't duplicate hook entries.
