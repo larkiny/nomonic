@@ -17,16 +17,37 @@ That's it. The script will:
 3. **Configure git hooks** — Sets up Husky (Node.js) or raw git hooks, installing dependencies as needed
 4. **Run on every commit** — Scans staged files before each `git commit`
 
+## Why This Exists
+
+BIP39 mnemonic phrases are the master keys to cryptocurrency wallets. Anyone who obtains a seed phrase has full, irreversible access to all funds in that wallet. Developers working on blockchain projects routinely handle seed phrases during testing, wallet integration, and key management — and a single accidental `git commit` can expose them in version history permanently (even if the file is deleted later, it remains in git's object store).
+
+This has happened in the Algorand ecosystem and across the broader crypto space. bip39-guard acts as a safety net: a pre-commit hook that catches seed phrases before they enter version control.
+
 ## How It Works
 
-The detector scans `git diff --cached` (staged changes) for sequences of consecutive BIP39 words. Surrounding punctuation (quotes, commas, brackets, etc.) is stripped before matching, so seed phrases are caught regardless of formatting. Words with **interior** punctuation (hyphens, apostrophes) are still disqualified — this prevents false positives on normal prose like `"open-source health. They're"`.
+The detector scans `git diff --cached` (staged changes) for sequences of consecutive words from the [BIP39 English wordlist](https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt) (2048 common English words). The core methodology:
 
-Detection works in two passes:
+1. **Tokenization with punctuation stripping** — Each token is stripped of surrounding non-alphabetic characters (quotes, commas, brackets, numbering like `1.`, etc.) before matching. This catches seed phrases in any common formatting. Tokens with *interior* punctuation (hyphens, apostrophes) are disqualified entirely — this is the primary false-positive defense, since normal English prose contains contractions (`they're`) and compound words (`open-source`) that would otherwise match.
 
-1. **Single-line** — finds sequences of BIP39 words within each line
-2. **Cross-line** — accumulates words across consecutive lines where every token is a BIP39 word, catching one-per-line and grid formats. Blank or whitespace-only lines are transparent and do not break a sequence
+2. **Single-line detection** — Finds runs of consecutive BIP39 words within each line. Non-BIP39 words reset the counter. This handles space-separated, comma-separated, JSON array, and inline numbered formats.
+
+3. **Cross-line detection** — Accumulates BIP39 words across consecutive lines where *every* meaningful token is a BIP39 word ("BIP39-pure" lines). Blank lines and lines containing only annotation labels (like `Word 1:` or `Recovery phrase:`) are transparent — they don't break or contribute to a sequence. This catches one-per-line, numbered list, and grid formats.
+
+4. **Threshold gating** — A violation is only reported when 5 or more consecutive BIP39 words are found (configurable via `BIP39_THRESHOLD`). Since the BIP39 wordlist contains common English words, shorter sequences occur naturally in prose.
 
 This catches standard 12/24-word BIP39 mnemonics as well as legacy 25-word Algorand account mnemonics (which use the same wordlist).
+
+## Limitations
+
+bip39-guard is a best-effort safety net, not a guarantee. Known limitations:
+
+- **Only detects English BIP39 words** — BIP39 defines wordlists for multiple languages (Japanese, Spanish, Chinese, etc.). This tool only checks the English list.
+- **Pre-commit hook is bypassable** — `git commit --no-verify` skips all hooks. The full-repo scanner (`scan-repo`) can be used in CI to catch what hooks miss.
+- **Staged diffs only (hook mode)** — The pre-commit hook only scans newly added/modified lines. Seed phrases already in the repository history are not caught. Use `scan-repo` for full-repo auditing.
+- **Obfuscated phrases are not detected** — Seed words that are base64-encoded, encrypted, split across variables, reversed, or otherwise transformed will not be caught.
+- **False positives are possible** — The BIP39 wordlist contains common English words (`abandon`, `ability`, `access`, `art`, `carbon`, `code`, etc.). Technical documentation or prose that happens to use 5+ consecutive BIP39 words will trigger a block. Raise the threshold or use `--no-verify` for legitimate cases.
+- **False negatives are possible** — Seed phrases with unusual formatting not covered by the tokenizer (e.g., tab-separated without spaces, embedded in URLs, mixed with non-whitespace delimiters) may not be detected.
+- **No checksum validation** — The detector does not verify that the word sequence forms a valid BIP39 mnemonic with correct checksum. It flags any run of BIP39 words meeting the threshold, whether or not it's a valid key.
 
 ### Detected formats
 
