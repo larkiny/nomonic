@@ -1,5 +1,86 @@
 import { describe, it, expect } from 'vitest'
 import { detectBip39Sequences } from './detect'
+import { extractAddedLines } from './check-staged'
+
+describe('extractAddedLines', () => {
+  it('parses hunk headers and returns correct file line numbers', () => {
+    const diff = [
+      'diff --git a/file.ts b/file.ts',
+      '--- a/file.ts',
+      '+++ b/file.ts',
+      '@@ -1,3 +1,4 @@',
+      ' line one',
+      ' line two',
+      '+added at line 3',
+      ' line three',
+    ].join('\n')
+    const result = extractAddedLines(diff)
+    expect(result).toEqual([{ fileLineNumber: 3, text: 'added at line 3' }])
+  })
+
+  it('handles multiple hunks with correct line numbers', () => {
+    const diff = [
+      '--- a/file.ts',
+      '+++ b/file.ts',
+      '@@ -1,3 +1,4 @@',
+      ' context',
+      '+added at line 2',
+      ' context',
+      ' context',
+      '@@ -10,3 +11,4 @@',
+      ' context',
+      '+added at line 12',
+      ' context',
+    ].join('\n')
+    const result = extractAddedLines(diff)
+    expect(result).toHaveLength(2)
+    expect(result[0]).toEqual({ fileLineNumber: 2, text: 'added at line 2' })
+    expect(result[1]).toEqual({ fileLineNumber: 12, text: 'added at line 12' })
+  })
+
+  it('does not advance line counter for removed lines', () => {
+    const diff = [
+      '--- a/file.ts',
+      '+++ b/file.ts',
+      '@@ -1,4 +1,4 @@',
+      ' kept',
+      '-removed',
+      '-also removed',
+      '+added at line 2',
+      '+added at line 3',
+      ' context at line 4',
+    ].join('\n')
+    const result = extractAddedLines(diff)
+    expect(result).toHaveLength(2)
+    expect(result[0].fileLineNumber).toBe(2)
+    expect(result[1].fileLineNumber).toBe(3)
+  })
+
+  it('handles hunk header with trailing context text', () => {
+    const diff = [
+      '--- a/file.ts',
+      '+++ b/file.ts',
+      '@@ -5,3 +10,4 @@ function foo() {',
+      ' context',
+      '+added at line 11',
+      ' context',
+    ].join('\n')
+    const result = extractAddedLines(diff)
+    expect(result).toEqual([{ fileLineNumber: 11, text: 'added at line 11' }])
+  })
+
+  it('returns empty array for diff with no added lines', () => {
+    const diff = [
+      '--- a/file.ts',
+      '+++ b/file.ts',
+      '@@ -1,3 +1,2 @@',
+      ' context',
+      '-removed line',
+      ' context',
+    ].join('\n')
+    expect(extractAddedLines(diff)).toEqual([])
+  })
+})
 
 describe('BIP39 detection against realistic file content', () => {
   it('detects seed phrase in .env with space-separated words', () => {

@@ -56,18 +56,55 @@ function getStagedDiff(file: string): string {
   }
 }
 
-function extractAddedContent(diff: string): string {
-  const lines: string[] = []
+export interface AddedLine {
+  fileLineNumber: number
+  text: string
+}
+
+export function extractAddedLines(diff: string): AddedLine[] {
+  const result: AddedLine[] = []
+  let currentLine = 0
+
   for (const line of diff.split('\n')) {
+    // Parse hunk headers: @@ -old,count +new,count @@
+    const hunkMatch = line.match(/^@@\s+-\d+(?:,\d+)?\s+\+(\d+)(?:,\d+)?\s+@@/)
+    if (hunkMatch) {
+      currentLine = parseInt(hunkMatch[1], 10)
+      continue
+    }
+
+    // Skip file headers
     if (line.startsWith('+++') || line.startsWith('---')) continue
+
     if (line.startsWith('+')) {
-      lines.push(line.slice(1))
+      result.push({ fileLineNumber: currentLine, text: line.slice(1) })
+      currentLine++
+    } else if (line.startsWith('-')) {
+      // Removed line — does not advance the new-file line counter
+    } else {
+      // Context line — advances the counter
+      currentLine++
     }
   }
-  return lines.join('\n')
+
+  return result
+}
+
+function getThreshold(): number {
+  const env = process.env.BIP39_THRESHOLD
+  if (env === undefined) return 5
+  const parsed = parseInt(env, 10)
+  if (Number.isNaN(parsed) || parsed < 1) {
+    process.stderr.write(
+      `${YELLOW}⚠ Invalid BIP39_THRESHOLD="${env}", using default (5)${NC}\n`
+    )
+    return 5
+  }
+  return parsed
 }
 
 function main(): void {
+  const threshold = getThreshold()
   const files = getStagedFiles()
   if (files.length === 0) {
     process.stderr.write(
@@ -82,15 +119,16 @@ function main(): void {
     const diff = getStagedDiff(file)
     if (!diff) continue
 
-    const addedContent = extractAddedContent(diff)
-    const violations = detectBip39Sequences(addedContent)
-
-    for (const v of violations) {
-      allViolations.push({
-        file,
-        lineNumber: v.lineNumber,
-        matchedWords: v.matchedWords,
-      })
+    const addedLines = extractAddedLines(diff)
+    for (const { fileLineNumber, text } of addedLines) {
+      const violations = detectBip39Sequences(text, threshold)
+      for (const v of violations) {
+        allViolations.push({
+          file,
+          lineNumber: fileLineNumber,
+          matchedWords: v.matchedWords,
+        })
+      }
     }
   }
 
@@ -108,7 +146,7 @@ function main(): void {
 
     for (const v of allViolations) {
       process.stderr.write('\n')
-      process.stderr.write(`  ${YELLOW}File: ${v.file}${NC}\n`)
+      process.stderr.write(`  ${YELLOW}File: ${v.file}:${v.lineNumber}${NC}\n`)
       process.stderr.write(
         `  ${RED}Found ${v.matchedWords.length} consecutive BIP39 words:${NC}\n`
       )
@@ -134,4 +172,11 @@ function main(): void {
   }
 }
 
-main()
+// Only run when executed directly (not when imported for testing)
+const isDirectRun =
+  process.argv[1]?.endsWith('check-staged.ts') ||
+  process.argv[1]?.endsWith('check-staged')
+
+if (isDirectRun) {
+  main()
+}
