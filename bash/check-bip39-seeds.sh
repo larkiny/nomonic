@@ -22,6 +22,41 @@ is_bip39() {
   grep -qx "$1" "$BIP39_FILE"
 }
 
+# Strip surrounding non-alpha characters from a token and classify it.
+# Sets STRIP_RESULT to: the stripped lowercase word, "SKIP" (entirely non-alpha),
+# or "BREAK" (interior punctuation like hyphens/apostrophes).
+strip_token() {
+  local t="$1"
+  # Strip leading non-alpha
+  local core="${t#"${t%%[a-zA-Z]*}"}"
+  if [[ -z "$core" ]]; then
+    STRIP_RESULT="SKIP"
+    return
+  fi
+  # Strip trailing non-alpha
+  core="${core%"${core##*[a-zA-Z]}"}"
+  # Check for interior non-alpha
+  case "$core" in
+    *[!a-zA-Z]*)
+      STRIP_RESULT="BREAK"
+      return
+      ;;
+  esac
+  # Return lowercase
+  STRIP_RESULT=$(echo "$core" | tr '[:upper:]' '[:lower:]')
+}
+
+# Flush cross-line accumulation if it meets the threshold.
+# Uses global vars: cross_words, cross_count, cross_start_line
+flush_cross_line() {
+  if [[ $cross_count -ge $THRESHOLD ]]; then
+    report_violation "$current_file" "$cross_start_line" "$cross_count" "$cross_words"
+  fi
+  cross_words=""
+  cross_count=0
+  cross_start_line=0
+}
+
 # ANSI color codes — only emit if stderr is a terminal
 if [[ -t 2 ]]; then
   RED='\033[0;31m'
@@ -89,12 +124,19 @@ while IFS= read -r file; do
   diff_output=$(git diff --cached -- "$file" 2>/dev/null || true)
   [[ -z "$diff_output" ]] && continue
 
+  current_file="$file"
   current_line=0
+
+  # Cross-line state
+  cross_words=""
+  cross_count=0
+  cross_start_line=0
 
   while IFS= read -r line; do
     # Parse diff hunk headers for line numbers
     if [[ "$line" =~ ^@@\ -[0-9]+(,[0-9]+)?\ \+([0-9]+)(,[0-9]+)?\ @@ ]]; then
       current_line=${BASH_REMATCH[2]}
+      flush_cross_line
       continue
     fi
 
@@ -112,33 +154,50 @@ while IFS= read -r file; do
 
       consecutive=0
       matched_words=""
+      line_reported=0
+      line_bip39_count=0
+      line_has_non_bip39_word=0
+      line_has_any_word=0
 
       for token in $lower_content; do
         [[ -z "$token" ]] && continue
-        # Only match purely alphabetic tokens
-        case "$token" in
-          *[!a-z]*)
-            # Token contains non-alpha characters — not a valid BIP39 token
+
+        strip_token "$token"
+
+        case "$STRIP_RESULT" in
+          SKIP)
+            # Purely non-alpha (e.g. "1.", "//") — skip without breaking sequence
+            continue
+            ;;
+          BREAK)
+            # Interior punctuation (e.g. "they're", "open-source") — flush sequence
             if [[ $consecutive -ge $THRESHOLD ]]; then
               report_violation "$file" "$current_line" "$consecutive" "$matched_words"
+              line_reported=1
             fi
             consecutive=0
             matched_words=""
+            line_has_non_bip39_word=1
+            line_has_any_word=1
             ;;
           *)
-            if is_bip39 "$token"; then
+            line_has_any_word=1
+            if is_bip39 "$STRIP_RESULT"; then
               consecutive=$((consecutive + 1))
+              line_bip39_count=$((line_bip39_count + 1))
               if [[ -z "$matched_words" ]]; then
-                matched_words="$token"
+                matched_words="$STRIP_RESULT"
               else
-                matched_words="$matched_words $token"
+                matched_words="$matched_words $STRIP_RESULT"
               fi
             else
               if [[ $consecutive -ge $THRESHOLD ]]; then
                 report_violation "$file" "$current_line" "$consecutive" "$matched_words"
+                line_reported=1
               fi
               consecutive=0
               matched_words=""
+              line_has_non_bip39_word=1
             fi
             ;;
         esac
@@ -147,14 +206,55 @@ while IFS= read -r file; do
       # Check trailing sequence at end of line
       if [[ $consecutive -ge $THRESHOLD ]]; then
         report_violation "$file" "$current_line" "$consecutive" "$matched_words"
+        line_reported=1
+      fi
+
+      # Cross-line accumulation
+      if [[ $line_reported -eq 1 ]]; then
+        # Already reported by single-line — flush cross-line
+        flush_cross_line
+      elif [[ $line_has_any_word -eq 1 && $line_has_non_bip39_word -eq 0 && $line_bip39_count -gt 0 ]]; then
+        # BIP39-pure line — accumulate for cross-line detection
+        if [[ $cross_count -eq 0 ]]; then
+          cross_start_line=$current_line
+        fi
+        # Gather all BIP39 words from this line (rebuild from matched state)
+        # We need to re-extract because matched_words only has the trailing run
+        # Re-scan for all BIP39 words on this line
+        for token in $lower_content; do
+          [[ -z "$token" ]] && continue
+          strip_token "$token"
+          [[ "$STRIP_RESULT" = "SKIP" || "$STRIP_RESULT" = "BREAK" ]] && continue
+          if is_bip39 "$STRIP_RESULT"; then
+            if [[ -z "$cross_words" ]]; then
+              cross_words="$STRIP_RESULT"
+            else
+              cross_words="$cross_words $STRIP_RESULT"
+            fi
+            cross_count=$((cross_count + 1))
+          fi
+        done
+      else
+        # Non-BIP39-pure line — flush cross-line
+        flush_cross_line
       fi
 
       current_line=$((current_line + 1))
     elif [[ "$line" != "-"* ]]; then
-      # Context line (no +/- prefix) — still advances the line counter
+      # Context line (no +/- prefix) — flush cross-line, advance line counter
+      flush_cross_line
       current_line=$((current_line + 1))
     fi
+    # Removed lines ("-" prefix) — implicitly flush cross-line
+    # (they don't enter either branch above, so no flush needed since
+    #  they don't contribute added content, but we should flush)
+    if [[ "$line" = "-"* ]] && [[ "$line" != "---"* ]]; then
+      flush_cross_line
+    fi
   done <<< "$diff_output"
+
+  # Flush remaining cross-line accumulation at end of file
+  flush_cross_line
 done <<< "$staged_files"
 
 if [[ $found_violations -gt 0 ]]; then
