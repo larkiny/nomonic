@@ -19,9 +19,27 @@ That's it. The script will:
 
 ## How It Works
 
-The detector scans `git diff --cached` (staged changes) for sequences of consecutive BIP39 words. It only matches **clean, space-separated, alphabetic tokens** — punctuation attached to a word disqualifies it.
+The detector scans `git diff --cached` (staged changes) for sequences of consecutive BIP39 words. Surrounding punctuation (quotes, commas, brackets, etc.) is stripped before matching, so seed phrases are caught regardless of formatting. Words with **interior** punctuation (hyphens, apostrophes) are still disqualified — this prevents false positives on normal prose like `"open-source health. They're"`.
 
-This means normal prose like `"open-source health. They're"` won't trigger a false positive, but a real mnemonic like `abandon ability able about above absent` will.
+Detection works in two passes:
+
+1. **Single-line** — finds sequences of BIP39 words within each line
+2. **Cross-line** — accumulates words across consecutive lines where every token is a BIP39 word, catching one-per-line and grid formats
+
+This catches standard 12/24-word BIP39 mnemonics as well as legacy 25-word Algorand account mnemonics (which use the same wordlist).
+
+### Detected formats
+
+| Format | Example |
+|---|---|
+| Space-separated | `abandon ability able about above` |
+| Comma-separated | `abandon, ability, able, about, above` |
+| Quoted CSV | `"abandon", "ability", "able", "about", "above"` |
+| JSON arrays | `["abandon", "ability", "able", "about", "above"]` |
+| Numbered (single line) | `1. abandon 2. ability 3. able 4. about 5. above` |
+| Numbered (multi-line) | `1. force`<br>`2. clay`<br>`3. airport`<br>`...` |
+| Grid layout (Algorand wallet) | `1. force 2. clay 3. airport`<br>`4. shoot 5. fence 6. fine`<br>`...` |
+| Plain one-per-line | `force`<br>`clay`<br>`airport`<br>`...` |
 
 ### What gets scanned
 
@@ -32,8 +50,9 @@ This means normal prose like `"open-source health. They're"` won't trigger a fal
 ### What triggers a block
 
 5 or more consecutive words that are all:
-- Purely alphabetic (no punctuation, quotes, hyphens, etc.)
 - Present in the [BIP39 English wordlist](https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt) (2048 words)
+- Purely alphabetic after stripping surrounding punctuation
+- Free of interior punctuation (hyphens, apostrophes, etc.)
 
 ## Configuration
 
