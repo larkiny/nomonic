@@ -36,7 +36,6 @@ function stripToken(token: string): string | null | 'skip' {
 function analyzeLine(line: string): {
   bip39Words: string[]
   isBip39Pure: boolean
-  hasContent: boolean
 } {
   const tokens = line
     .split(/\s+/)
@@ -44,7 +43,7 @@ function analyzeLine(line: string): {
     .map((t) => t.toLowerCase())
 
   if (tokens.length === 0) {
-    return { bip39Words: [], isBip39Pure: false, hasContent: false }
+    return { bip39Words: [], isBip39Pure: false }
   }
 
   const bip39Words: string[] = []
@@ -67,7 +66,6 @@ function analyzeLine(line: string): {
   return {
     bip39Words,
     isBip39Pure: hasAnyWord && !hasNonBip39Word,
-    hasContent: tokens.length > 0,
   }
 }
 
