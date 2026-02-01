@@ -1,5 +1,12 @@
 # nomonic
 
+[![Beta](https://img.shields.io/badge/status-beta-yellow)](https://github.com/algorandfoundation/nomonic)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6)](https://www.typescriptlang.org/)
+[![Bash](https://img.shields.io/badge/Bash-3.2%2B-4EAA25)](https://www.gnu.org/software/bash/)
+
+> **Beta:** This project is experimental and under active development. APIs and behavior may change.
+
 Pre-commit hook that detects BIP39 mnemonic seed phrases in staged files and blocks the commit. Prevents accidental secret leaks that have historically led to exploits in the Algorand ecosystem.
 
 ## Quick Start
