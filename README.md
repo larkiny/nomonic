@@ -26,9 +26,9 @@ That's it. The script will:
 
 ## 💡 Why This Exists
 
-BIP39 mnemonic phrases are the master keys to cryptocurrency wallets. Anyone who obtains a seed phrase has full, irreversible access to all funds in that wallet. Developers working on blockchain projects routinely handle seed phrases during testing, wallet integration, and key management — and a single accidental `git commit` can expose them in version history permanently (even if the file is deleted later, it remains in git's object store).
+You handle seed phrases during development. Testing wallets, integrating key management, debugging transactions - all the things. But one overconfident `git commit` later and that BIG SECRET THING is in your repo history forever (it's still kinda in the room with us even after you delete it).
 
-This has happened in the Algorand ecosystem and across the broader crypto space. nomonic acts as a safety net: a pre-commit hook that catches seed phrases before they enter version control.
+It's happened before. nomonic is a pre-commit hook that catches seed phrases before they make it into version control. Or that's what I hope, anyway. Like GTA6, it's still coming along.
 
 ## ⚙️ How It Works
 
