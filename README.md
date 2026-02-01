@@ -1,6 +1,6 @@
 # 🔐 nomonic
 
-[![Experimental](https://img.shields.io/badge/status-vibes-purple)](https://github.com/algorandfoundation/nomonic)
+[![Experimental](https://img.shields.io/badge/status-vibes-purple)](https://github.com/larkiny/nomonic)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6)](https://www.typescriptlang.org/)
 [![Bash](https://img.shields.io/badge/Bash-3.2%2B-4EAA25)](https://www.gnu.org/software/bash/)
@@ -14,7 +14,7 @@ Pre-commit hook that detects BIP39 mnemonic seed phrases in staged files and blo
 Run this from your project root:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/algorandfoundation/nomonic/main/setup.sh | bash
+curl -fsSL https://raw.githubusercontent.com/larkiny/nomonic/main/setup.sh | bash
 ```
 
 That's it. The script will:
@@ -136,7 +136,7 @@ git commit --no-verify
 Re-run the setup command to pull the latest detector files:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/algorandfoundation/nomonic/main/setup.sh | bash
+curl -fsSL https://raw.githubusercontent.com/larkiny/nomonic/main/setup.sh | bash
 ```
 
 The script is idempotent — it won't duplicate hook entries.
