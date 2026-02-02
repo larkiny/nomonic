@@ -10,6 +10,7 @@ THRESHOLD=5
 MODE="git"
 DIR_PATH="."
 INCLUDE_LOCKFILES=0
+EXTRA_IGNORE_PATTERNS=()
 
 # Parse CLI flags
 while [[ $# -gt 0 ]]; do
@@ -33,9 +34,14 @@ while [[ $# -gt 0 ]]; do
       THRESHOLD="$2"
       shift 2
       ;;
+    --ignore)
+      [[ $# -ge 2 ]] || { echo "Error: --ignore requires a pattern" >&2; exit 2; }
+      EXTRA_IGNORE_PATTERNS+=("$2")
+      shift 2
+      ;;
     *)
       echo "Unknown option: $1" >&2
-      echo "Usage: $0 [--git | --dir <path>] [--include-lockfiles] [--threshold <n>]" >&2
+      echo "Usage: $0 [--git | --dir <path>] [--include-lockfiles] [--threshold <n>] [--ignore <pattern>]" >&2
       exit 2
       ;;
   esac
@@ -120,6 +126,45 @@ fi
 
 # Lock files to skip
 LOCK_FILES="package-lock.json yarn.lock pnpm-lock.yaml bun.lockb Cargo.lock Gemfile.lock poetry.lock composer.lock"
+
+# Load ignore patterns from .nomonicignore
+IGNORE_PATTERNS=()
+if [[ -f ".nomonicignore" ]]; then
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%"${line##*[![:space:]]}"}"
+    [[ -z "$line" ]] && continue
+    [[ "$line" = \#* ]] && continue
+    IGNORE_PATTERNS+=("$line")
+  done < ".nomonicignore"
+fi
+if [[ ${#EXTRA_IGNORE_PATTERNS[@]} -gt 0 ]]; then
+  for p in "${EXTRA_IGNORE_PATTERNS[@]}"; do
+    IGNORE_PATTERNS+=("$p")
+  done
+fi
+
+is_ignored() {
+  local filepath="$1"
+  # Normalize: strip leading ./ and DIR_PATH prefix for relative matching
+  filepath="${filepath#./}"
+  if [[ "$MODE" = "dir" && "$DIR_PATH" != "." ]]; then
+    local prefix="${DIR_PATH%/}/"
+    filepath="${filepath#"$prefix"}"
+  fi
+  [[ ${#IGNORE_PATTERNS[@]} -eq 0 ]] && return 1
+  local pattern p
+  for pattern in "${IGNORE_PATTERNS[@]}"; do
+    p="$pattern"
+    [[ "$p" = /* ]] && p="${p#/}"
+    p="${p//\*\*/*}"
+    # shellcheck disable=SC2254
+    case "$filepath" in
+      $p) return 0 ;;
+    esac
+  done
+  return 1
+}
 
 found_violations=0
 header_printed=0
@@ -315,6 +360,11 @@ while IFS= read -r file; do
       fi
     done
     $skip && continue
+  fi
+
+  # Skip ignored paths
+  if is_ignored "$file"; then
+    continue
   fi
 
   # Skip files that don't exist (e.g. deleted but still in git index)

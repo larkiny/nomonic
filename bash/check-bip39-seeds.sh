@@ -88,6 +88,36 @@ fi
 # Lock files to skip
 LOCK_FILES="package-lock.json yarn.lock pnpm-lock.yaml bun.lockb Cargo.lock Gemfile.lock poetry.lock composer.lock"
 
+# Load ignore patterns from .nomonicignore
+IGNORE_PATTERNS=()
+if [[ -f ".nomonicignore" ]]; then
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%"${line##*[![:space:]]}"}"
+    [[ -z "$line" ]] && continue
+    [[ "$line" = \#* ]] && continue
+    IGNORE_PATTERNS+=("$line")
+  done < ".nomonicignore"
+fi
+
+is_ignored() {
+  local filepath="$1"
+  filepath="${filepath#./}"
+  [[ ${#IGNORE_PATTERNS[@]} -eq 0 ]] && return 1
+  local pattern p
+  for pattern in "${IGNORE_PATTERNS[@]}"; do
+    p="$pattern"
+    [[ "$p" = /* ]] && p="${p#/}"
+    # Collapse ** to * (bash case * already crosses /)
+    p="${p//\*\*/*}"
+    # shellcheck disable=SC2254
+    case "$filepath" in
+      $p) return 0 ;;
+    esac
+  done
+  return 1
+}
+
 found_violations=0
 header_printed=0
 
@@ -136,6 +166,11 @@ while IFS= read -r file; do
     fi
   done
   $skip && continue
+
+  # Skip ignored paths
+  if is_ignored "$file"; then
+    continue
+  fi
 
   # Get the diff for this file
   diff_output=$(git diff --cached -- "$file" 2>/dev/null || true)

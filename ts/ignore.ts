@@ -59,8 +59,9 @@ export function compilePattern(pattern: string): RegExp {
 }
 
 export function isIgnored(filePath: string, patterns: RegExp[]): boolean {
+  const normalized = filePath.startsWith('./') ? filePath.slice(2) : filePath
   for (const pat of patterns) {
-    if (pat.test(filePath)) return true
+    if (pat.test(normalized)) return true
   }
   return false
 }
