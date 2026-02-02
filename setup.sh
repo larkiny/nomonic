@@ -79,6 +79,7 @@ if [[ -f "package.json" ]]; then
   download "$REPO_RAW/ts/wordlist.ts"         "scripts/nomonic/wordlist.ts"
   download "$REPO_RAW/ts/detect.ts"           "scripts/nomonic/detect.ts"
   download "$REPO_RAW/ts/check-staged.ts"     "scripts/nomonic/check-staged.ts"
+  download "$REPO_RAW/ts/scan-repo.ts"        "scripts/nomonic/scan-repo.ts"
   info "Downloaded detector to scripts/nomonic/"
 
   # Ensure tsx is available
@@ -119,7 +120,9 @@ else
   echo -e "${BOLD}Setting up nomonic (Bash)...${NC}"
 
   download "$REPO_RAW/bash/check-bip39-seeds.sh" "scripts/nomonic/check-bip39-seeds.sh"
+  download "$REPO_RAW/bash/scan-repo.sh"          "scripts/nomonic/scan-repo.sh"
   chmod +x "scripts/nomonic/check-bip39-seeds.sh"
+  chmod +x "scripts/nomonic/scan-repo.sh"
   info "Downloaded detector to scripts/nomonic/"
 
   # Set up git hook
