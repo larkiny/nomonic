@@ -99,6 +99,7 @@ jobs:
           test -f scripts/nomonic/wordlist.ts
           test -f scripts/nomonic/detect.ts
           test -f scripts/nomonic/check-staged.ts
+          test -f scripts/nomonic/scan-repo.ts
           grep -q "scripts/nomonic/check-staged.ts" .husky/pre-commit
 
       - name: "Install smoke test: non-Node project"
@@ -115,4 +116,6 @@ jobs:
           # Assertions
           test -f scripts/nomonic/check-bip39-seeds.sh
           test -x scripts/nomonic/check-bip39-seeds.sh
+          test -f scripts/nomonic/scan-repo.sh
+          test -x scripts/nomonic/scan-repo.sh
           grep -q "scripts/nomonic/check-bip39-seeds.sh" .git/hooks/pre-commit
