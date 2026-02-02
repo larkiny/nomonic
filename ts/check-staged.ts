@@ -60,11 +60,23 @@ function getStagedDiff(file: string): string {
   }
 }
 
+/** A single added line extracted from a unified diff. */
 export interface AddedLine {
+  /** The 1-based line number in the new (post-patch) file. */
   fileLineNumber: number
+  /** The text content of the added line (without the leading `+`). */
   text: string
 }
 
+/**
+ * Parse a unified diff and extract the added lines with their file line numbers.
+ *
+ * Tracks hunk headers (`@@ ... @@`) to maintain accurate line numbering.
+ * Removed lines (`-`) do not advance the line counter; context lines do.
+ *
+ * @param diff - A unified diff string (e.g. from `git diff --cached`).
+ * @returns An array of {@link AddedLine} objects for each `+` line in the diff.
+ */
 export function extractAddedLines(diff: string): AddedLine[] {
   const result: AddedLine[] = []
   let currentLine = 0
@@ -94,14 +106,23 @@ export function extractAddedLines(diff: string): AddedLine[] {
   return result
 }
 
+/** A reassembled block of added content with a mapping back to original file line numbers. */
 export interface ContentBlock {
+  /** The concatenated text of all added lines, with sentinel lines between non-contiguous chunks. */
   content: string
-  lineMap: number[] // maps content line index → file line number (-1 for sentinels)
+  /** Maps each line index in {@link content} to its original file line number (`-1` for sentinel lines). */
+  lineMap: number[]
 }
 
 /**
  * Build a content block from added lines, inserting empty sentinel lines
- * between non-contiguous lines so cross-line detection doesn't span gaps.
+ * between non-contiguous lines so cross-line detection does not span gaps.
+ *
+ * Sentinel lines (`---nomonic-sentinel---`) ensure that the BIP39 detector
+ * cannot accidentally join words from unrelated hunks.
+ *
+ * @param addedLines - Added lines extracted by {@link extractAddedLines}.
+ * @returns A {@link ContentBlock} with the reassembled content and line mapping.
  */
 export function buildContentBlock(addedLines: AddedLine[]): ContentBlock {
   const contentLines: string[] = []

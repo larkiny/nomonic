@@ -15,10 +15,15 @@ const LOCK_FILES = new Set([
   'composer.lock',
 ])
 
+/** A BIP39 violation tied to a specific file, produced by {@link scanFiles}. */
 export interface ScanViolation {
+  /** The file path where the violation was found. */
   file: string
+  /** The 1-based line number within the file. */
   lineNumber: number
+  /** The consecutive BIP39 words that triggered the violation. */
   matchedWords: string[]
+  /** The full text of the line where the violation starts. */
   line: string
 }
 
@@ -66,6 +71,16 @@ function getFilesRecursive(dir: string): string[] {
   return results
 }
 
+/**
+ * Scan an array of file paths for BIP39 mnemonic sequences.
+ *
+ * Each file is read as UTF-8 text. Binary files (containing null bytes) are
+ * silently skipped. Files that cannot be read are also skipped.
+ *
+ * @param files - Absolute or relative file paths to scan.
+ * @param threshold - Minimum consecutive BIP39 words to trigger a violation (default: 5).
+ * @returns An array of {@link ScanViolation} objects across all scanned files.
+ */
 export function scanFiles(
   files: string[],
   threshold: number = 5,
