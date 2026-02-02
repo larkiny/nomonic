@@ -98,6 +98,7 @@ jobs:
           # Assertions
           test -f scripts/nomonic/wordlist.ts
           test -f scripts/nomonic/detect.ts
+          test -f scripts/nomonic/ignore.ts
           test -f scripts/nomonic/check-staged.ts
           test -f scripts/nomonic/scan-repo.ts
           grep -q "scripts/nomonic/check-staged.ts" .husky/pre-commit
