@@ -2,6 +2,7 @@ import { readFileSync, readdirSync, statSync } from 'fs'
 import { execFileSync } from 'child_process'
 import { join } from 'path'
 import { detectBip39Sequences } from './detect'
+import { loadIgnorePatterns, compilePattern, isIgnored } from './ignore'
 
 const LOCK_FILES = new Set([
   'package-lock.json',
@@ -103,6 +104,7 @@ function main(): void {
   let includeLockfiles = false
   let threshold = 5
   let jsonOutput = false
+  const extraIgnorePatterns: string[] = []
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
@@ -122,6 +124,9 @@ function main(): void {
       case '--json':
         jsonOutput = true
         break
+      case '--ignore':
+        extraIgnorePatterns.push(args[++i])
+        break
     }
   }
 
@@ -135,6 +140,10 @@ function main(): void {
   if (!includeLockfiles) {
     files = files.filter((f) => !LOCK_FILES.has(getBasename(f)))
   }
+
+  const allIgnorePatterns = [...loadIgnorePatterns(), ...extraIgnorePatterns]
+  const compiled = allIgnorePatterns.map(compilePattern)
+  files = files.filter((f) => !isIgnored(f, compiled))
 
   const violations = scanFiles(files, threshold)
 
