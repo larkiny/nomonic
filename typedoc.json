@@ -1,0 +1,15 @@
+{
+  "entryPoints": [
+    "ts/detect.ts",
+    "ts/ignore.ts",
+    "ts/scan-repo.ts",
+    "ts/check-staged.ts",
+    "ts/wordlist.ts"
+  ],
+  "out": "docs-site",
+  "tsconfig": "tsconfig.json",
+  "name": "nomonic",
+  "readme": "README.md",
+  "excludePrivate": true,
+  "excludeInternal": true
+}
