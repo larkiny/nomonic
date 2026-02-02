@@ -1,182 +1,182 @@
-import { readFileSync, readdirSync, statSync } from "fs";
-import { execFileSync } from "child_process";
-import { join } from "path";
-import { detectBip39Sequences } from "./detect";
+import { readFileSync, readdirSync, statSync } from 'fs'
+import { execFileSync } from 'child_process'
+import { join } from 'path'
+import { detectBip39Sequences } from './detect'
 
 const LOCK_FILES = new Set([
-  "package-lock.json",
-  "yarn.lock",
-  "pnpm-lock.yaml",
-  "bun.lockb",
-  "Cargo.lock",
-  "Gemfile.lock",
-  "poetry.lock",
-  "composer.lock",
-]);
+  'package-lock.json',
+  'yarn.lock',
+  'pnpm-lock.yaml',
+  'bun.lockb',
+  'Cargo.lock',
+  'Gemfile.lock',
+  'poetry.lock',
+  'composer.lock',
+])
 
 export interface ScanViolation {
-  file: string;
-  lineNumber: number;
-  matchedWords: string[];
-  line: string;
+  file: string
+  lineNumber: number
+  matchedWords: string[]
+  line: string
 }
 
 function getBasename(filePath: string): string {
-  return filePath.split("/").pop() ?? filePath;
+  return filePath.split('/').pop() ?? filePath
 }
 
 function isBinary(content: string): boolean {
-  return content.includes("\0");
+  return content.includes('\0')
 }
 
 function getGitFiles(): string[] {
   try {
-    const output = execFileSync("git", ["ls-files"], { encoding: "utf-8" });
-    return output.trim().split("\n").filter(Boolean);
+    const output = execFileSync('git', ['ls-files'], { encoding: 'utf-8' })
+    return output.trim().split('\n').filter(Boolean)
   } catch {
-    return [];
+    return []
   }
 }
 
 function getFilesRecursive(dir: string): string[] {
-  const results: string[] = [];
-  const entries = readdirSync(dir);
+  const results: string[] = []
+  const entries = readdirSync(dir)
 
   for (const entry of entries) {
-    if (entry === ".git" || entry === "node_modules") continue;
-    const fullPath = join(dir, entry);
-    const stat = statSync(fullPath);
+    if (entry === '.git' || entry === 'node_modules') continue
+    const fullPath = join(dir, entry)
+    const stat = statSync(fullPath)
     if (stat.isDirectory()) {
-      results.push(...getFilesRecursive(fullPath));
+      results.push(...getFilesRecursive(fullPath))
     } else {
-      results.push(fullPath);
+      results.push(fullPath)
     }
   }
 
-  return results;
+  return results
 }
 
 export function scanFiles(
   files: string[],
   threshold: number = 5,
 ): ScanViolation[] {
-  const violations: ScanViolation[] = [];
+  const violations: ScanViolation[] = []
 
   for (const file of files) {
-    let content: string;
+    let content: string
     try {
-      content = readFileSync(file, "utf-8");
+      content = readFileSync(file, 'utf-8')
     } catch {
-      continue;
+      continue
     }
 
-    if (isBinary(content)) continue;
+    if (isBinary(content)) continue
 
-    const detected = detectBip39Sequences(content, threshold);
+    const detected = detectBip39Sequences(content, threshold)
     for (const v of detected) {
       violations.push({
         file,
         lineNumber: v.lineNumber,
         matchedWords: v.matchedWords,
         line: v.line,
-      });
+      })
     }
   }
 
-  return violations;
+  return violations
 }
 
 // ── CLI ──────────────────────────────────────────────────────────────
 
-const isTTY = process.stderr.isTTY ?? false;
-const RED = isTTY ? "\x1b[0;31m" : "";
-const GREEN = isTTY ? "\x1b[0;32m" : "";
-const YELLOW = isTTY ? "\x1b[0;33m" : "";
-const BOLD = isTTY ? "\x1b[1m" : "";
-const NC = isTTY ? "\x1b[0m" : "";
+const isTTY = process.stderr.isTTY ?? false
+const RED = isTTY ? '\x1b[0;31m' : ''
+const GREEN = isTTY ? '\x1b[0;32m' : ''
+const YELLOW = isTTY ? '\x1b[0;33m' : ''
+const BOLD = isTTY ? '\x1b[1m' : ''
+const NC = isTTY ? '\x1b[0m' : ''
 
 function main(): void {
-  const args = process.argv.slice(2);
+  const args = process.argv.slice(2)
 
-  let mode: "git" | "dir" = "git";
-  let dirPath = ".";
-  let includeLockfiles = false;
-  let threshold = 5;
-  let jsonOutput = false;
+  let mode: 'git' | 'dir' = 'git'
+  let dirPath = '.'
+  let includeLockfiles = false
+  let threshold = 5
+  let jsonOutput = false
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case "--git":
-        mode = "git";
-        break;
-      case "--dir":
-        mode = "dir";
-        dirPath = args[++i];
-        break;
-      case "--include-lockfiles":
-        includeLockfiles = true;
-        break;
-      case "--threshold":
-        threshold = parseInt(args[++i], 10);
-        break;
-      case "--json":
-        jsonOutput = true;
-        break;
+      case '--git':
+        mode = 'git'
+        break
+      case '--dir':
+        mode = 'dir'
+        dirPath = args[++i]
+        break
+      case '--include-lockfiles':
+        includeLockfiles = true
+        break
+      case '--threshold':
+        threshold = parseInt(args[++i], 10)
+        break
+      case '--json':
+        jsonOutput = true
+        break
     }
   }
 
-  let files: string[];
-  if (mode === "dir") {
-    files = getFilesRecursive(dirPath);
+  let files: string[]
+  if (mode === 'dir') {
+    files = getFilesRecursive(dirPath)
   } else {
-    files = getGitFiles();
+    files = getGitFiles()
   }
 
   if (!includeLockfiles) {
-    files = files.filter((f) => !LOCK_FILES.has(getBasename(f)));
+    files = files.filter((f) => !LOCK_FILES.has(getBasename(f)))
   }
 
-  const violations = scanFiles(files, threshold);
+  const violations = scanFiles(files, threshold)
 
   if (jsonOutput) {
-    process.stdout.write(JSON.stringify(violations, null, 2) + "\n");
-    process.exit(violations.length > 0 ? 1 : 0);
+    process.stdout.write(JSON.stringify(violations, null, 2) + '\n')
+    process.exit(violations.length > 0 ? 1 : 0)
   }
 
   if (violations.length > 0) {
-    process.stderr.write("\n");
+    process.stderr.write('\n')
     process.stderr.write(
       `${RED}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}\n`,
-    );
+    )
     process.stderr.write(
       `${RED}${BOLD}║  BIP39 SEED PHRASE DETECTED                                  ║${NC}\n`,
-    );
+    )
     process.stderr.write(
       `${RED}${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}\n`,
-    );
+    )
 
     for (const v of violations) {
-      process.stderr.write("\n");
-      process.stderr.write(`  ${YELLOW}File: ${v.file}:${v.lineNumber}${NC}\n`);
+      process.stderr.write('\n')
+      process.stderr.write(`  ${YELLOW}File: ${v.file}:${v.lineNumber}${NC}\n`)
       process.stderr.write(
         `  ${RED}Found ${v.matchedWords.length} consecutive BIP39 words:${NC}\n`,
-      );
-      process.stderr.write(`  ${RED}  → ${v.matchedWords.join(" ")}${NC}\n`);
+      )
+      process.stderr.write(`  ${RED}  → ${v.matchedWords.join(' ')}${NC}\n`)
     }
 
-    process.stderr.write("\n");
-    process.exit(1);
+    process.stderr.write('\n')
+    process.exit(1)
   } else {
-    process.stderr.write(`${GREEN}✓ No BIP39 seed phrases detected${NC}\n`);
-    process.exit(0);
+    process.stderr.write(`${GREEN}✓ No BIP39 seed phrases detected${NC}\n`)
+    process.exit(0)
   }
 }
 
 // Only run when executed directly (not when imported for testing)
 const isDirectRun =
-  process.argv[1]?.endsWith("scan-repo.ts") ||
-  process.argv[1]?.endsWith("scan-repo");
+  process.argv[1]?.endsWith('scan-repo.ts') ||
+  process.argv[1]?.endsWith('scan-repo')
 
 if (isDirectRun) {
-  main();
+  main()
 }

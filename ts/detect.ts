@@ -34,8 +34,16 @@ function stripToken(token: string): string | null | 'skip' {
  * Treated as transparent (SKIP) in both single-line and cross-line detection.
  */
 const ANNOTATION_TOKENS = new Set([
-  'word', 'words', 'mnemonic', 'seed', 'phrase',
-  'key', 'backup', 'recovery', 'secret', 'passphrase',
+  'word',
+  'words',
+  'mnemonic',
+  'seed',
+  'phrase',
+  'key',
+  'backup',
+  'recovery',
+  'secret',
+  'passphrase',
 ])
 
 /**
@@ -97,7 +105,7 @@ function analyzeLine(line: string): {
  */
 export function detectBip39Sequences(
   content: string,
-  threshold: number = 5
+  threshold: number = 5,
 ): Bip39Violation[] {
   if (!content) return []
 
