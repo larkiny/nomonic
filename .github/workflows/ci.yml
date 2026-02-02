@@ -1,0 +1,119 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run lint
+      - run: pnpm run format:check
+
+  test-ts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm vitest run ts
+
+  test-bash:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Positive: space-separated phrase"
+        run: |
+          TMPDIR=$(mktemp -d)
+          echo "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about" > "$TMPDIR/seed.txt"
+          bash bash/scan-repo.sh --dir "$TMPDIR" && exit 1 || test $? -eq 1
+
+      - name: "Positive: comma-separated phrase"
+        run: |
+          TMPDIR=$(mktemp -d)
+          echo "abandon, abandon, abandon, abandon, abandon, abandon, abandon, abandon, abandon, abandon, abandon, about" > "$TMPDIR/seed.txt"
+          bash bash/scan-repo.sh --dir "$TMPDIR" && exit 1 || test $? -eq 1
+
+      - name: "Positive: numbered list"
+        run: |
+          TMPDIR=$(mktemp -d)
+          printf '1. abandon\n2. abandon\n3. abandon\n4. abandon\n5. abandon\n6. abandon\n7. abandon\n8. abandon\n9. abandon\n10. abandon\n11. abandon\n12. about\n' > "$TMPDIR/seed.txt"
+          bash bash/scan-repo.sh --dir "$TMPDIR" && exit 1 || test $? -eq 1
+
+      - name: "Positive: bulleted list"
+        run: |
+          TMPDIR=$(mktemp -d)
+          printf -- '- abandon\n- abandon\n- abandon\n- abandon\n- abandon\n- abandon\n- abandon\n- abandon\n- abandon\n- abandon\n- abandon\n- about\n' > "$TMPDIR/seed.txt"
+          bash bash/scan-repo.sh --dir "$TMPDIR" && exit 1 || test $? -eq 1
+
+      - name: "Positive: one word per line"
+        run: |
+          TMPDIR=$(mktemp -d)
+          printf 'abandon\nabandon\nabandon\nabandon\nabandon\nabandon\nabandon\nabandon\nabandon\nabandon\nabandon\nabout\n' > "$TMPDIR/seed.txt"
+          bash bash/scan-repo.sh --dir "$TMPDIR" && exit 1 || test $? -eq 1
+
+      - name: "Negative: clean English text"
+        run: |
+          TMPDIR=$(mktemp -d)
+          echo "The quick brown fox jumps over the lazy dog. This is a perfectly normal sentence." > "$TMPDIR/clean.txt"
+          bash bash/scan-repo.sh --dir "$TMPDIR"
+
+  test-install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: "Install smoke test: Node project"
+        run: |
+          TMPDIR=$(mktemp -d)
+          cd "$TMPDIR"
+          git init
+          echo '{"private":true}' > package.json
+          npm install --save-dev tsx
+
+          # Serve local files instead of fetching from GitHub
+          REPO_ROOT="${GITHUB_WORKSPACE}"
+          export REPO_RAW="file://${REPO_ROOT}"
+          bash "${REPO_ROOT}/setup.sh"
+
+          # Assertions
+          test -f scripts/nomonic/wordlist.ts
+          test -f scripts/nomonic/detect.ts
+          test -f scripts/nomonic/check-staged.ts
+          grep -q "scripts/nomonic/check-staged.ts" .husky/pre-commit
+
+      - name: "Install smoke test: non-Node project"
+        run: |
+          TMPDIR=$(mktemp -d)
+          cd "$TMPDIR"
+          git init
+
+          # Serve local files instead of fetching from GitHub
+          REPO_ROOT="${GITHUB_WORKSPACE}"
+          export REPO_RAW="file://${REPO_ROOT}"
+          bash "${REPO_ROOT}/setup.sh"
+
+          # Assertions
+          test -f scripts/nomonic/check-bip39-seeds.sh
+          test -x scripts/nomonic/check-bip39-seeds.sh
+          grep -q "scripts/nomonic/check-bip39-seeds.sh" .git/hooks/pre-commit
