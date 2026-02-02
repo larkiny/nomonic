@@ -1,8 +1,12 @@
 import { BIP39_WORDS } from './wordlist'
 
+/** A detected sequence of consecutive BIP39 mnemonic words in scanned content. */
 export interface Bip39Violation {
+  /** The 1-based line number where the violation was found. */
   lineNumber: number
+  /** The consecutive BIP39 words that triggered the violation. */
   matchedWords: string[]
+  /** The full text of the line where the violation starts. */
   line: string
 }
 
@@ -102,6 +106,19 @@ function analyzeLine(line: string): {
  * Tokens are stripped of surrounding punctuation (quotes, commas, brackets, etc.)
  * before matching. Interior punctuation (hyphens, apostrophes) still disqualifies a token.
  * Purely non-alphabetic tokens (like "1.", "2)", "//") are skipped without breaking a sequence.
+ *
+ * @param content - The text content to scan for BIP39 sequences.
+ * @param threshold - Minimum number of consecutive BIP39 words to trigger a violation (default: 5).
+ * @returns An array of {@link Bip39Violation} objects, one per detected sequence.
+ *
+ * @example
+ * ```ts
+ * const violations = detectBip39Sequences(
+ *   'abandon ability able about above absent absorb abstract absurd abuse access accident',
+ *   5,
+ * )
+ * // violations[0].matchedWords.length === 12
+ * ```
  */
 export function detectBip39Sequences(
   content: string,
