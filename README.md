@@ -4,6 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6)](https://www.typescriptlang.org/)
 [![Bash](https://img.shields.io/badge/Bash-3.2%2B-4EAA25)](https://www.gnu.org/software/bash/)
+[![API Docs](https://img.shields.io/badge/docs-API-informational)](https://larkiny.github.io/nomonic/)
 
 > **Beta:** This project is experimental and still very much a WIP. APIs and behavior may change, and I'll definitely make enhancements to the detection mechanism to cover more edge cases.
 
@@ -144,11 +145,11 @@ The script is idempotent — it won't duplicate hook entries.
 ## 🗑️ Uninstalling
 
 1. Remove the BIP39 check line from your pre-commit hook:
-   - **Husky:** Edit `.husky/pre-commit`, delete the `npx tsx scripts/precommit-nomonic/check-staged.ts` line
-   - **Git hooks:** Edit `.git/hooks/pre-commit`, delete the `./scripts/precommit-nomonic/check-bip39-seeds.sh` line
+   - **Husky:** Edit `.husky/pre-commit`, delete the `npx tsx scripts/nomonic/check-staged.ts` line
+   - **Git hooks:** Edit `.git/hooks/pre-commit`, delete the `./scripts/nomonic/check-bip39-seeds.sh` line
 2. Delete the detector files:
-   - **TypeScript:** `rm -rf scripts/precommit-nomonic/`
-   - **Bash:** `rm -rf scripts/precommit-nomonic/`
+   - **TypeScript:** `rm -rf scripts/nomonic/`
+   - **Bash:** `rm -rf scripts/nomonic/`
 
 ## 📁 What's in the repo
 
