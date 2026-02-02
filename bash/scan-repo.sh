@@ -198,6 +198,11 @@ enumerate_files() {
   if [[ "$MODE" = "git" ]]; then
     git ls-files 2>/dev/null || true
   else
+    # Try git ls-files scoped to dir first (respects .gitignore)
+    # Fall back to find if not in a git repo
+    if git ls-files "$DIR_PATH" 2>/dev/null; then
+      return
+    fi
     find "$DIR_PATH" -type f \
       ! -path '*/.git/*' \
       ! -path '*/node_modules/*' \

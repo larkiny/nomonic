@@ -39,6 +39,15 @@ function getGitFiles(): string[] {
   }
 }
 
+function getGitFilesInDir(dir: string): string[] | null {
+  try {
+    const output = execFileSync('git', ['ls-files', dir], { encoding: 'utf-8' })
+    return output.trim().split('\n').filter(Boolean)
+  } catch {
+    return null
+  }
+}
+
 function getFilesRecursive(dir: string): string[] {
   const results: string[] = []
   const entries = readdirSync(dir)
@@ -132,7 +141,7 @@ function main(): void {
 
   let files: string[]
   if (mode === 'dir') {
-    files = getFilesRecursive(dirPath)
+    files = getGitFilesInDir(dirPath) ?? getFilesRecursive(dirPath)
   } else {
     files = getGitFiles()
   }
