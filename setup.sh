@@ -78,6 +78,7 @@ if [[ -f "package.json" ]]; then
   # Download TS files
   download "$REPO_RAW/ts/wordlist.ts"         "scripts/nomonic/wordlist.ts"
   download "$REPO_RAW/ts/detect.ts"           "scripts/nomonic/detect.ts"
+  download "$REPO_RAW/ts/ignore.ts"           "scripts/nomonic/ignore.ts"
   download "$REPO_RAW/ts/check-staged.ts"     "scripts/nomonic/check-staged.ts"
   download "$REPO_RAW/ts/scan-repo.ts"        "scripts/nomonic/scan-repo.ts"
   info "Downloaded detector to scripts/nomonic/"
