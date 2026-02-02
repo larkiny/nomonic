@@ -30,7 +30,7 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm vitest run ts
+      - run: pnpm run test:coverage
 
   test-bash:
     runs-on: ubuntu-latest
