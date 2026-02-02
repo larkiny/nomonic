@@ -13,10 +13,7 @@ describe('loadIgnorePatterns', () => {
   it('reads patterns from .nomonicignore', () => {
     const dir = mkdtempSync(join(tmpdir(), 'nomonic-'))
     writeFileSync(join(dir, '.nomonicignore'), 'drizzle/migrations/**\n*.sql\n')
-    expect(loadIgnorePatterns(dir)).toEqual([
-      'drizzle/migrations/**',
-      '*.sql',
-    ])
+    expect(loadIgnorePatterns(dir)).toEqual(['drizzle/migrations/**', '*.sql'])
   })
 
   it('strips comments and blank lines', () => {
