@@ -31,6 +31,19 @@ You handle seed phrases during development. Testing wallets, integrating key man
 
 It's happened before. nomonic is a pre-commit hook that catches seed phrases before they make it into version control. Or that's what I hope, anyway. Like GTA6, it's still coming along.
 
+### How is this different from GitHub Push Protection?
+
+[GitHub Push Protection](https://docs.github.com/en/code-security/secret-scanning/introduction/about-push-protection) detects **structured secrets** — API keys, tokens, and private keys that have recognizable patterns like prefixes, checksums, or high-entropy signatures. It does not detect BIP39 seed phrases because a mnemonic is just a sequence of common English words with no structural fingerprint.
+
+nomonic fills that gap. The two tools are complementary: Push Protection catches your API keys, nomonic catches your seed phrases.
+
+| | GitHub Push Protection | nomonic |
+|---|---|---|
+| API keys & tokens | ✅ | ❌ |
+| BIP39 seed phrases | ❌ | ✅ |
+| Runs | Server-side (on push) | Client-side (pre-commit) |
+| Requires | GitHub Advanced Security | Nothing (zero dependencies) |
+
 ## ⚙️ How It Works
 
 The detector scans `git diff --cached` (staged changes) for sequences of consecutive words from the [BIP39 English wordlist](https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt) (2048 common English words). The core methodology:
