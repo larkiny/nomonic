@@ -108,14 +108,14 @@ For CI pipelines or manual auditing, scan all tracked files (not just staged cha
 
 ### TypeScript
 
-```typescript
-pnpm exec tsx ts/scan-repo.ts
+```bash
+pnpm exec tsx scripts/nomonic/scan-repo.ts
 ```
 
 ### Bash
 
 ```bash
-bash bash/scan-repo.sh
+bash scripts/nomonic/scan-repo.sh
 ```
 
 ### Options
