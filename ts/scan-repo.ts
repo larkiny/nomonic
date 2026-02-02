@@ -2,6 +2,7 @@ import { readFileSync, readdirSync, statSync } from 'fs'
 import { execFileSync } from 'child_process'
 import { join } from 'path'
 import { detectBip39Sequences } from './detect'
+import { loadIgnorePatterns, compilePattern, isIgnored } from './ignore'
 
 const LOCK_FILES = new Set([
   'package-lock.json',
@@ -35,6 +36,15 @@ function getGitFiles(): string[] {
     return output.trim().split('\n').filter(Boolean)
   } catch {
     return []
+  }
+}
+
+function getGitFilesInDir(dir: string): string[] | null {
+  try {
+    const output = execFileSync('git', ['ls-files', dir], { encoding: 'utf-8' })
+    return output.trim().split('\n').filter(Boolean)
+  } catch {
+    return null
   }
 }
 
@@ -103,6 +113,7 @@ function main(): void {
   let includeLockfiles = false
   let threshold = 5
   let jsonOutput = false
+  const extraIgnorePatterns: string[] = []
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
@@ -122,12 +133,15 @@ function main(): void {
       case '--json':
         jsonOutput = true
         break
+      case '--ignore':
+        extraIgnorePatterns.push(args[++i])
+        break
     }
   }
 
   let files: string[]
   if (mode === 'dir') {
-    files = getFilesRecursive(dirPath)
+    files = getGitFilesInDir(dirPath) ?? getFilesRecursive(dirPath)
   } else {
     files = getGitFiles()
   }
@@ -135,6 +149,10 @@ function main(): void {
   if (!includeLockfiles) {
     files = files.filter((f) => !LOCK_FILES.has(getBasename(f)))
   }
+
+  const allIgnorePatterns = [...loadIgnorePatterns(), ...extraIgnorePatterns]
+  const compiled = allIgnorePatterns.map(compilePattern)
+  files = files.filter((f) => !isIgnored(f, compiled))
 
   const violations = scanFiles(files, threshold)
 

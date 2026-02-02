@@ -1,5 +1,6 @@
 import { execFileSync } from 'child_process'
 import { detectBip39Sequences } from './detect'
+import { loadIgnorePatterns, compilePattern, isIgnored } from './ignore'
 
 const LOCK_FILES = new Set([
   'package-lock.json',
@@ -25,6 +26,8 @@ interface FileViolation {
   matchedWords: string[]
 }
 
+const ignorePatterns = loadIgnorePatterns().map(compilePattern)
+
 function getBasename(filePath: string): string {
   return filePath.split('/').pop() ?? filePath
 }
@@ -41,6 +44,7 @@ function getStagedFiles(): string[] {
       .split('\n')
       .filter(Boolean)
       .filter((f) => !LOCK_FILES.has(getBasename(f)))
+      .filter((f) => !isIgnored(f, ignorePatterns))
   } catch {
     return []
   }
