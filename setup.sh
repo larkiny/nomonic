@@ -2,9 +2,9 @@
 set -euo pipefail
 
 # nomonic — One-command installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/algorandfoundation/nomonic/main/setup.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/larkiny/nomonic/main/setup.sh | bash
 
-REPO_RAW="https://raw.githubusercontent.com/algorandfoundation/nomonic/main"
+REPO_RAW="https://raw.githubusercontent.com/larkiny/nomonic/main"
 
 # ─── Colors (only if terminal) ───────────────────────────────────────────────
 if [[ -t 1 ]]; then
