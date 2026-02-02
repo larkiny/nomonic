@@ -76,10 +76,10 @@ if [[ -f "package.json" ]]; then
   info "Detected package manager: $PM"
 
   # Download TS files
-  download "$REPO_RAW/ts/wordlist.ts"         "scripts/bip39/wordlist.ts"
-  download "$REPO_RAW/ts/detect.ts"           "scripts/bip39/detect.ts"
-  download "$REPO_RAW/ts/check-staged.ts"     "scripts/bip39/check-staged.ts"
-  info "Downloaded detector to scripts/bip39/"
+  download "$REPO_RAW/ts/wordlist.ts"         "scripts/nomonic/wordlist.ts"
+  download "$REPO_RAW/ts/detect.ts"           "scripts/nomonic/detect.ts"
+  download "$REPO_RAW/ts/check-staged.ts"     "scripts/nomonic/check-staged.ts"
+  info "Downloaded detector to scripts/nomonic/"
 
   # Ensure tsx is available
   if ! grep -q '"tsx"' package.json 2>/dev/null; then
@@ -88,7 +88,7 @@ if [[ -f "package.json" ]]; then
   fi
 
   # Set up Husky
-  HOOK_LINE="npx tsx scripts/bip39/check-staged.ts"
+  HOOK_LINE="npx tsx scripts/nomonic/check-staged.ts"
 
   if [[ -d ".husky" ]]; then
     info "Husky already configured"
@@ -118,12 +118,12 @@ else
   # ── Non-Node project → Bash version ──
   echo -e "${BOLD}Setting up nomonic (Bash)...${NC}"
 
-  download "$REPO_RAW/bash/check-bip39-seeds.sh" "scripts/check-bip39-seeds.sh"
-  chmod +x "scripts/check-bip39-seeds.sh"
-  info "Downloaded detector to scripts/check-bip39-seeds.sh"
+  download "$REPO_RAW/bash/check-bip39-seeds.sh" "scripts/nomonic/check-bip39-seeds.sh"
+  chmod +x "scripts/nomonic/check-bip39-seeds.sh"
+  info "Downloaded detector to scripts/nomonic/"
 
   # Set up git hook
-  HOOK_LINE="./scripts/check-bip39-seeds.sh"
+  HOOK_LINE="./scripts/nomonic/check-bip39-seeds.sh"
   HOOK_FILE=".git/hooks/pre-commit"
 
   if [[ -L "$HOOK_FILE" ]]; then
