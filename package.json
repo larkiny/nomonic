@@ -1,9 +1,16 @@
 {
   "private": true,
   "type": "module",
+  "scripts": {
+    "lint": "eslint ts/",
+    "format:check": "prettier --check ts/"
+  },
   "devDependencies": {
-    "vitest": "^3.0.0",
+    "eslint": "^9.39.2",
+    "prettier": "^3.8.1",
     "tsx": "^4.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.54.0",
+    "vitest": "^3.0.0"
   }
 }
