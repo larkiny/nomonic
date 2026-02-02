@@ -127,9 +127,13 @@ header_printed=0
 print_header() {
   if [[ $header_printed -eq 0 ]]; then
     echo "" >&2
-    echo -e "${RED}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}" >&2
-    echo -e "${RED}${BOLD}║  BIP39 SEED PHRASE DETECTED                                 ║${NC}" >&2
-    echo -e "${RED}${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}" >&2
+    if [[ -t 2 ]]; then
+      echo -e "${RED}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}" >&2
+      echo -e "${RED}${BOLD}║  BIP39 SEED PHRASE DETECTED                                 ║${NC}" >&2
+      echo -e "${RED}${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}" >&2
+    else
+      echo "=== BIP39 SEED PHRASE DETECTED ===" >&2
+    fi
     header_printed=1
   fi
 }

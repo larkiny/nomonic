@@ -145,15 +145,19 @@ function main(): void {
 
   if (violations.length > 0) {
     process.stderr.write('\n')
-    process.stderr.write(
-      `${RED}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}\n`,
-    )
-    process.stderr.write(
-      `${RED}${BOLD}║  BIP39 SEED PHRASE DETECTED                                  ║${NC}\n`,
-    )
-    process.stderr.write(
-      `${RED}${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}\n`,
-    )
+    if (isTTY) {
+      process.stderr.write(
+        `${RED}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}\n`,
+      )
+      process.stderr.write(
+        `${RED}${BOLD}║  BIP39 SEED PHRASE DETECTED                                  ║${NC}\n`,
+      )
+      process.stderr.write(
+        `${RED}${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}\n`,
+      )
+    } else {
+      process.stderr.write('=== BIP39 SEED PHRASE DETECTED ===\n')
+    }
 
     for (const v of violations) {
       process.stderr.write('\n')

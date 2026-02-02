@@ -169,15 +169,21 @@ function main(): void {
 
   if (allViolations.length > 0) {
     process.stderr.write('\n')
-    process.stderr.write(
-      `${RED}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}\n`,
-    )
-    process.stderr.write(
-      `${RED}${BOLD}║  BIP39 SEED PHRASE DETECTED — COMMIT BLOCKED                 ║${NC}\n`,
-    )
-    process.stderr.write(
-      `${RED}${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}\n`,
-    )
+    if (isTTY) {
+      process.stderr.write(
+        `${RED}${BOLD}╔══════════════════════════════════════════════════════════════╗${NC}\n`,
+      )
+      process.stderr.write(
+        `${RED}${BOLD}║  BIP39 SEED PHRASE DETECTED — COMMIT BLOCKED                 ║${NC}\n`,
+      )
+      process.stderr.write(
+        `${RED}${BOLD}╚══════════════════════════════════════════════════════════════╝${NC}\n`,
+      )
+    } else {
+      process.stderr.write(
+        '=== BIP39 SEED PHRASE DETECTED — COMMIT BLOCKED ===\n',
+      )
+    }
 
     for (const v of allViolations) {
       process.stderr.write('\n')
