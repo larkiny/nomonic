@@ -18,7 +18,13 @@ describe('detectBip39Sequences', () => {
     const result = detectBip39Sequences('abandon ability able about above')
     expect(result).toHaveLength(1)
     expect(result[0].lineNumber).toBe(1)
-    expect(result[0].matchedWords).toEqual(['abandon', 'ability', 'able', 'about', 'above'])
+    expect(result[0].matchedWords).toEqual([
+      'abandon',
+      'ability',
+      'able',
+      'about',
+      'above',
+    ])
   })
 
   it('detects a full 12-word mnemonic', () => {
@@ -36,13 +42,17 @@ describe('detectBip39Sequences', () => {
   it('detects BIP39 words regardless of case', () => {
     const result = detectBip39Sequences('ABANDON ABILITY ABLE ABOUT ABOVE')
     expect(result).toHaveLength(1)
-    expect(result[0].matchedWords).toEqual(['abandon', 'ability', 'able', 'about', 'above'])
+    expect(result[0].matchedWords).toEqual([
+      'abandon',
+      'ability',
+      'able',
+      'about',
+      'above',
+    ])
   })
 
   it('detects comma-separated BIP39 words', () => {
-    const result = detectBip39Sequences(
-      'abandon, ability, able, about, above'
-    )
+    const result = detectBip39Sequences('abandon, ability, able, about, above')
     expect(result).toHaveLength(1)
     expect(result[0].matchedWords).toEqual([
       'abandon',
@@ -55,7 +65,7 @@ describe('detectBip39Sequences', () => {
 
   it('detects quoted comma-separated BIP39 words', () => {
     const result = detectBip39Sequences(
-      '"abandon", "ability", "able", "about", "above"'
+      '"abandon", "ability", "able", "about", "above"',
     )
     expect(result).toHaveLength(1)
     expect(result[0].matchedWords).toEqual([
@@ -76,7 +86,9 @@ describe('detectBip39Sequences', () => {
   it('does NOT flag prose with interior punctuation', () => {
     // "they're" has interior apostrophe, "open-source" has interior hyphen
     expect(
-      detectBip39Sequences("team) indicate genuine open-source health. They're")
+      detectBip39Sequences(
+        "team) indicate genuine open-source health. They're",
+      ),
     ).toEqual([])
   })
 
@@ -94,7 +106,7 @@ describe('detectBip39Sequences', () => {
 
   it('detects JSON array syntax with BIP39 words', () => {
     const result = detectBip39Sequences(
-      '["abandon", "ability", "able", "about", "above"]'
+      '["abandon", "ability", "able", "about", "above"]',
     )
     expect(result).toHaveLength(1)
     expect(result[0].matchedWords).toEqual([
@@ -110,7 +122,7 @@ describe('detectBip39Sequences', () => {
     expect(detectBip39Sequences('abandon ability able about', 6)).toEqual([])
     const result = detectBip39Sequences(
       'abandon ability able about above absent',
-      6
+      6,
     )
     expect(result).toHaveLength(1)
     expect(result[0].matchedWords).toHaveLength(6)
@@ -150,7 +162,7 @@ describe('detectBip39Sequences', () => {
 
   it('detects numbered list of BIP39 words on a single line', () => {
     const result = detectBip39Sequences(
-      '1. abandon 2. ability 3. able 4. about 5. above'
+      '1. abandon 2. ability 3. able 4. about 5. above',
     )
     expect(result).toHaveLength(1)
     expect(result[0].matchedWords).toEqual([
@@ -164,7 +176,7 @@ describe('detectBip39Sequences', () => {
 
   it('detects parenthesized numbered list of BIP39 words', () => {
     const result = detectBip39Sequences(
-      '1) abandon 2) ability 3) able 4) about 5) above'
+      '1) abandon 2) ability 3) able 4) about 5) above',
     )
     expect(result).toHaveLength(1)
     expect(result[0].matchedWords).toEqual([
@@ -178,7 +190,7 @@ describe('detectBip39Sequences', () => {
 
   it('detects single-quoted BIP39 words', () => {
     const result = detectBip39Sequences(
-      "'abandon' 'ability' 'able' 'about' 'above'"
+      "'abandon' 'ability' 'able' 'about' 'above'",
     )
     expect(result).toHaveLength(1)
     expect(result[0].matchedWords).toHaveLength(5)
@@ -186,7 +198,7 @@ describe('detectBip39Sequences', () => {
 
   it('detects backtick-quoted BIP39 words', () => {
     const result = detectBip39Sequences(
-      '`abandon` `ability` `able` `about` `above`'
+      '`abandon` `ability` `able` `about` `above`',
     )
     expect(result).toHaveLength(1)
     expect(result[0].matchedWords).toHaveLength(5)
@@ -195,20 +207,20 @@ describe('detectBip39Sequences', () => {
   it('does NOT flag words with interior punctuation after stripping', () => {
     // "can't" → strip quotes → "can't" still has interior apostrophe
     // "re-enter" → strip → "re-enter" still has interior hyphen
-    expect(
-      detectBip39Sequences("can't won't they're you're we're")
-    ).toEqual([])
+    expect(detectBip39Sequences("can't won't they're you're we're")).toEqual([])
   })
 
   it('does NOT flag numbered non-BIP39 words', () => {
     expect(
-      detectBip39Sequences('1. hello 2. world 3. testing 4. something 5. random')
+      detectBip39Sequences(
+        '1. hello 2. world 3. testing 4. something 5. random',
+      ),
     ).toEqual([])
   })
 
   it('detects env var with double-quoted mnemonic (last word recovered)', () => {
     const result = detectBip39Sequences(
-      'MNEMONIC="abandon ability able about above absent absorb abstract"'
+      'MNEMONIC="abandon ability able about above absent absorb abstract"',
     )
     expect(result).toHaveLength(1)
     // MNEMONIC="abandon is one token with interior = and " → no match.
@@ -221,13 +233,7 @@ describe('detectBip39Sequences', () => {
   // ── Cross-line detection ───────────────────────────────────────────
 
   it('detects one-word-per-line BIP39 mnemonic', () => {
-    const content = [
-      'abandon',
-      'ability',
-      'able',
-      'about',
-      'above',
-    ].join('\n')
+    const content = ['abandon', 'ability', 'able', 'about', 'above'].join('\n')
     const result = detectBip39Sequences(content)
     expect(result).toHaveLength(1)
     expect(result[0].matchedWords).toEqual([
@@ -281,11 +287,31 @@ describe('detectBip39Sequences', () => {
 
   it('detects plain 25-word Algorand mnemonic one-per-line', () => {
     const words = [
-      'force', 'clay', 'airport', 'shoot', 'fence',
-      'fine', 'year', 'exhaust', 'fan', 'fun',
-      'coffee', 'cable', 'glove', 'genre', 'globe',
-      'exact', 'color', 'assault', 'govern', 'potato',
-      'radio', 'rice', 'bargain', 'abstract', 'moral',
+      'force',
+      'clay',
+      'airport',
+      'shoot',
+      'fence',
+      'fine',
+      'year',
+      'exhaust',
+      'fan',
+      'fun',
+      'coffee',
+      'cable',
+      'glove',
+      'genre',
+      'globe',
+      'exact',
+      'color',
+      'assault',
+      'govern',
+      'potato',
+      'radio',
+      'rice',
+      'bargain',
+      'abstract',
+      'moral',
     ]
     const content = words.join('\n')
     const result = detectBip39Sequences(content)
@@ -310,14 +336,9 @@ describe('detectBip39Sequences', () => {
   })
 
   it('cross-line detection treats blank lines as transparent', () => {
-    const content = [
-      'abandon',
-      'ability',
-      'able',
-      '',
-      'about',
-      'above',
-    ].join('\n')
+    const content = ['abandon', 'ability', 'able', '', 'about', 'above'].join(
+      '\n',
+    )
     const result = detectBip39Sequences(content)
     expect(result).toHaveLength(1)
     expect(result[0].matchedWords).toHaveLength(5)
@@ -403,7 +424,7 @@ describe('detectBip39Sequences', () => {
 
   it('detects single-line seed phrase with annotation tokens', () => {
     const result = detectBip39Sequences(
-      'mnemonic: abandon ability able about above'
+      'mnemonic: abandon ability able about above',
     )
     expect(result).toHaveLength(1)
     expect(result[0].matchedWords).toEqual([
@@ -446,9 +467,7 @@ describe('detectBip39Sequences', () => {
   })
 
   it('treats "seed" as annotation token even though it is BIP39', () => {
-    const result = detectBip39Sequences(
-      'seed abandon ability able about above'
-    )
+    const result = detectBip39Sequences('seed abandon ability able about above')
     expect(result).toHaveLength(1)
     expect(result[0].matchedWords).toEqual([
       'abandon',
