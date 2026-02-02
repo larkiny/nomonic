@@ -7,6 +7,7 @@
     "test:coverage": "vitest run ts --coverage",
     "lint": "eslint ts/",
     "format:check": "prettier --check ts/",
+    "bench": "vitest bench ts",
     "docs": "typedoc"
   },
   "devDependencies": {

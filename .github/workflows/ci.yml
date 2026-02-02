@@ -120,6 +120,18 @@ jobs:
           test -x scripts/nomonic/scan-repo.sh
           grep -q "scripts/nomonic/check-bip39-seeds.sh" .git/hooks/pre-commit
 
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run bench
+
   docs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
