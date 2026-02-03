@@ -28,11 +28,11 @@ interface FileViolation {
 
 const ignorePatterns = loadIgnorePatterns().map(compilePattern)
 
-function getBasename(filePath: string): string {
+export function getBasename(filePath: string): string {
   return filePath.split('/').pop() ?? filePath
 }
 
-function getStagedFiles(): string[] {
+export function getStagedFiles(): string[] {
   try {
     const output = execFileSync(
       'git',
@@ -50,7 +50,7 @@ function getStagedFiles(): string[] {
   }
 }
 
-function getStagedDiff(file: string): string {
+export function getStagedDiff(file: string): string {
   try {
     return execFileSync('git', ['diff', '--cached', '--', file], {
       encoding: 'utf-8',
@@ -144,7 +144,7 @@ export function buildContentBlock(addedLines: AddedLine[]): ContentBlock {
   return { content: contentLines.join('\n'), lineMap }
 }
 
-function getThreshold(): number {
+export function getThreshold(): number {
   const env = process.env.BIP39_THRESHOLD
   if (env === undefined) return 5
   const parsed = parseInt(env, 10)
@@ -157,7 +157,7 @@ function getThreshold(): number {
   return parsed
 }
 
-function main(): void {
+export function main(): void {
   const threshold = getThreshold()
   const files = getStagedFiles()
   if (files.length === 0) {
