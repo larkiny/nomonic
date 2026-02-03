@@ -6,6 +6,7 @@
 [![Bash](https://img.shields.io/badge/Bash-3.2%2B-4EAA25)](https://www.gnu.org/software/bash/)
 [![API Docs](https://img.shields.io/badge/docs-API-informational)](https://larkiny.github.io/nomonic/)
 [![codecov](https://codecov.io/gh/larkiny/nomonic/graph/badge.svg)](https://codecov.io/gh/larkiny/nomonic)
+[![CI](https://github.com/larkiny/nomonic/actions/workflows/ci.yml/badge.svg)](https://github.com/larkiny/nomonic/actions/workflows/ci.yml)
 
 > **Beta:** This project is experimental and still very much a WIP. APIs and behavior may change, and I'll definitely make enhancements to the detection mechanism to cover more edge cases.
 
