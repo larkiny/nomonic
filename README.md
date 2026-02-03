@@ -1,7 +1,7 @@
 # 🔐 nomonic
 
 [![Experimental](https://img.shields.io/badge/status-vibes-purple)](https://github.com/larkiny/nomonic)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![License: Unlicense](https://img.shields.io/badge/license-Unlicense-blue)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6)](https://www.typescriptlang.org/)
 [![Bash](https://img.shields.io/badge/Bash-3.2%2B-4EAA25)](https://www.gnu.org/software/bash/)
 [![API Docs](https://img.shields.io/badge/docs-API-informational)](https://larkiny.github.io/nomonic/)
@@ -183,4 +183,4 @@ setup.sh                   # One-command installer
 
 ## 📄 License
 
-MIT
+[The Unlicense](LICENSE) — public domain. Do whatever you want with it.
