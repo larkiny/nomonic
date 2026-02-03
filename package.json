@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest run ts",
-    "test:coverage": "vitest run ts --coverage --coverage.include=ts",
+    "test:coverage": "vitest run ts --coverage --coverage.include=ts --coverage.reporter=text --coverage.reporter=json",
     "lint": "eslint ts/",
     "format:check": "prettier --check ts/",
     "bench": "vitest bench ts",

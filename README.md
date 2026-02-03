@@ -5,6 +5,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6)](https://www.typescriptlang.org/)
 [![Bash](https://img.shields.io/badge/Bash-3.2%2B-4EAA25)](https://www.gnu.org/software/bash/)
 [![API Docs](https://img.shields.io/badge/docs-API-informational)](https://larkiny.github.io/nomonic/)
+[![codecov](https://codecov.io/gh/larkiny/nomonic/graph/badge.svg)](https://codecov.io/gh/larkiny/nomonic)
 
 > **Beta:** This project is experimental and still very much a WIP. APIs and behavior may change, and I'll definitely make enhancements to the detection mechanism to cover more edge cases.
 
