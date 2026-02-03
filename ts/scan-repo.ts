@@ -27,11 +27,11 @@ export interface ScanViolation {
   line: string
 }
 
-function getBasename(filePath: string): string {
+export function getBasename(filePath: string): string {
   return filePath.split('/').pop() ?? filePath
 }
 
-function isBinary(content: string): boolean {
+export function isBinary(content: string): boolean {
   return content.includes('\0')
 }
 
@@ -53,7 +53,7 @@ function getGitFilesInDir(dir: string): string[] | null {
   }
 }
 
-function getFilesRecursive(dir: string): string[] {
+export function getFilesRecursive(dir: string): string[] {
   const results: string[] = []
   const entries = readdirSync(dir)
 
@@ -120,7 +120,7 @@ const YELLOW = isTTY ? '\x1b[0;33m' : ''
 const BOLD = isTTY ? '\x1b[1m' : ''
 const NC = isTTY ? '\x1b[0m' : ''
 
-function main(): void {
+export function main(): void {
   const args = process.argv.slice(2)
 
   let mode: 'git' | 'dir' = 'git'
