@@ -36,11 +36,11 @@ function makeTempDir(): string {
 describe('scanFiles', () => {
   it('detects seed phrase in a file', () => {
     const dir = makeTempDir()
-    writeFileSync(join(dir, 'secrets.txt'), 'abandon ability able about above')
+    writeFileSync(join(dir, 'secrets.txt'), 'abandon ability able about above absent absorb abstract')
     const result = scanFiles([join(dir, 'secrets.txt')])
     expect(result).toHaveLength(1)
     expect(result[0].file).toContain('secrets.txt')
-    expect(result[0].matchedWords).toHaveLength(5)
+    expect(result[0].matchedWords).toHaveLength(8)
   })
 
   it('returns empty for clean files', () => {
@@ -52,9 +52,9 @@ describe('scanFiles', () => {
 
   it('scans multiple files', () => {
     const dir = makeTempDir()
-    writeFileSync(join(dir, 'a.txt'), 'abandon ability able about above')
+    writeFileSync(join(dir, 'a.txt'), 'abandon ability able about above absent absorb abstract')
     writeFileSync(join(dir, 'b.txt'), 'normal content here')
-    writeFileSync(join(dir, 'c.txt'), 'zoo zone zero youth young you')
+    writeFileSync(join(dir, 'c.txt'), 'zoo zone zero youth young you yard year')
     const result = scanFiles([
       join(dir, 'a.txt'),
       join(dir, 'b.txt'),
@@ -65,9 +65,9 @@ describe('scanFiles', () => {
 
   it('respects custom threshold', () => {
     const dir = makeTempDir()
-    writeFileSync(join(dir, 'test.txt'), 'abandon ability able about above')
-    expect(scanFiles([join(dir, 'test.txt')], 6)).toEqual([])
-    expect(scanFiles([join(dir, 'test.txt')], 5)).toHaveLength(1)
+    writeFileSync(join(dir, 'test.txt'), 'abandon ability able about above absent absorb abstract')
+    expect(scanFiles([join(dir, 'test.txt')], 10)).toEqual([])
+    expect(scanFiles([join(dir, 'test.txt')], 8)).toHaveLength(1)
   })
 
   it('skips binary files gracefully', () => {
@@ -209,7 +209,7 @@ describe('scan-repo main() in-process', () => {
     const dir = makeTempDir()
     writeFileSync(
       join(dir, 'mild.txt'),
-      'abandon ability able about above absent\n',
+      'abandon ability able about above absent absorb abstract absurd\n',
     )
     process.argv = ['node', 'scan-repo.ts', '--dir', dir, '--threshold', '12']
     main()
@@ -294,10 +294,10 @@ describe('scan-repo CLI (subprocess)', () => {
 
   it('--threshold raises the bar for detection', () => {
     const dir = makeTempDir()
-    // 6 consecutive BIP39 words — default threshold (5) would catch this
+    // 9 consecutive BIP39 words — default threshold (8) would catch this
     writeFileSync(
       join(dir, 'mild.txt'),
-      'abandon ability able about above absent',
+      'abandon ability able about above absent absorb abstract absurd',
     )
     const { exitCode } = runScanRepo(['--dir', dir, '--threshold', '12'])
     expect(exitCode).toBe(0)

@@ -160,7 +160,7 @@ describe('buildContentBlock', () => {
       { fileLineNumber: 52, text: 'absent' },
     ])
     const violations = detectBip39Sequences(block.content)
-    // Each group of 3 is below threshold (5) — should NOT detect
+    // Each group of 3 is below threshold (8) — should NOT detect
     expect(violations).toEqual([])
   })
 
@@ -171,17 +171,20 @@ describe('buildContentBlock', () => {
       { fileLineNumber: 12, text: 'able' },
       { fileLineNumber: 13, text: 'about' },
       { fileLineNumber: 14, text: 'above' },
+      { fileLineNumber: 15, text: 'absent' },
+      { fileLineNumber: 16, text: 'absorb' },
+      { fileLineNumber: 17, text: 'abstract' },
     ])
     const violations = detectBip39Sequences(block.content)
     expect(violations).toHaveLength(1)
-    expect(violations[0].matchedWords).toHaveLength(5)
+    expect(violations[0].matchedWords).toHaveLength(8)
     // Map violation line number back to file line
     const fileLineNumber = block.lineMap[violations[0].lineNumber - 1]
     expect(fileLineNumber).toBe(10)
   })
 
   it('maps violation line numbers correctly with gaps', () => {
-    // 5 contiguous BIP39 words at lines 20-24, preceded by a non-contiguous line
+    // 8 contiguous BIP39 words at lines 20-27, preceded by a non-contiguous line
     const block = buildContentBlock([
       { fileLineNumber: 5, text: 'some code' },
       { fileLineNumber: 20, text: 'abandon' },
@@ -189,6 +192,9 @@ describe('buildContentBlock', () => {
       { fileLineNumber: 22, text: 'able' },
       { fileLineNumber: 23, text: 'about' },
       { fileLineNumber: 24, text: 'above' },
+      { fileLineNumber: 25, text: 'absent' },
+      { fileLineNumber: 26, text: 'absorb' },
+      { fileLineNumber: 27, text: 'abstract' },
     ])
     const violations = detectBip39Sequences(block.content)
     expect(violations).toHaveLength(1)
@@ -239,13 +245,13 @@ wallet.connect()`
   it('detects JSON array with BIP39 words after stripping punctuation', () => {
     const jsonContent = `{
   "name": "my-project",
-  "mnemonic": ["abandon", "ability", "able", "about", "above", "absent"],
+  "mnemonic": ["abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract"],
   "version": "1.0.0"
 }`
     const result = detectBip39Sequences(jsonContent)
     expect(result).toHaveLength(1)
     expect(result[0].lineNumber).toBe(3)
-    expect(result[0].matchedWords).toHaveLength(6)
+    expect(result[0].matchedWords).toHaveLength(8)
   })
 
   it('returns no violations for clean Python file', () => {
@@ -312,9 +318,9 @@ describe('getThreshold', () => {
     }
   })
 
-  it('returns 5 when BIP39_THRESHOLD is not set', () => {
+  it('returns 8 when BIP39_THRESHOLD is not set', () => {
     delete process.env.BIP39_THRESHOLD
-    expect(getThreshold()).toBe(5)
+    expect(getThreshold()).toBe(8)
   })
 
   it('returns parsed value when valid env is set', () => {
@@ -322,30 +328,30 @@ describe('getThreshold', () => {
     expect(getThreshold()).toBe(10)
   })
 
-  it('returns 5 and warns on invalid env (non-numeric)', () => {
+  it('returns 8 and warns on invalid env (non-numeric)', () => {
     process.env.BIP39_THRESHOLD = 'abc'
     const stderrSpy = vi.spyOn(process.stderr, 'write').mockReturnValue(true)
-    expect(getThreshold()).toBe(5)
+    expect(getThreshold()).toBe(8)
     expect(stderrSpy).toHaveBeenCalledWith(
       expect.stringContaining('Invalid BIP39_THRESHOLD'),
     )
     stderrSpy.mockRestore()
   })
 
-  it('returns 5 and warns on invalid env (negative)', () => {
+  it('returns 8 and warns on invalid env (negative)', () => {
     process.env.BIP39_THRESHOLD = '-1'
     const stderrSpy = vi.spyOn(process.stderr, 'write').mockReturnValue(true)
-    expect(getThreshold()).toBe(5)
+    expect(getThreshold()).toBe(8)
     expect(stderrSpy).toHaveBeenCalledWith(
       expect.stringContaining('Invalid BIP39_THRESHOLD'),
     )
     stderrSpy.mockRestore()
   })
 
-  it('returns 5 and warns on zero', () => {
+  it('returns 8 and warns on zero', () => {
     process.env.BIP39_THRESHOLD = '0'
     const stderrSpy = vi.spyOn(process.stderr, 'write').mockReturnValue(true)
-    expect(getThreshold()).toBe(5)
+    expect(getThreshold()).toBe(8)
     stderrSpy.mockRestore()
   })
 })
@@ -440,10 +446,10 @@ describe('check-staged CLI (subprocess)', () => {
 
   it('respects BIP39_THRESHOLD env var', () => {
     const dir = makeTempGitRepo()
-    // 6 consecutive BIP39 words — default threshold (5) catches this
+    // 9 consecutive BIP39 words — default threshold (8) catches this
     writeFileSync(
       join(dir, 'mild.txt'),
-      'abandon ability able about above absent\n',
+      'abandon ability able about above absent absorb abstract absurd\n',
     )
     execFileSync('git', ['add', 'mild.txt'], { cwd: dir })
     // Set threshold high so it passes

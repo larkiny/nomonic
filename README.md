@@ -56,7 +56,7 @@ The detector scans `git diff --cached` (staged changes) for sequences of consecu
 
 3. **Cross-line detection** — Accumulates BIP39 words across consecutive lines where _every_ meaningful token is a BIP39 word ("BIP39-pure" lines). Blank lines and lines containing only annotation labels (like `Word 1:` or `Recovery phrase:`) are transparent — they don't break or contribute to a sequence. This catches one-per-line, numbered list, and grid formats.
 
-4. **Threshold gating** — A violation is only reported when 5 or more consecutive BIP39 words are found (configurable via `BIP39_THRESHOLD`). Since the BIP39 wordlist contains common English words, shorter sequences occur naturally in prose.
+4. **Threshold gating** — A violation is only reported when 8 or more consecutive BIP39 words are found (configurable via `BIP39_THRESHOLD`). Since the BIP39 wordlist contains common English words, shorter sequences occur naturally in prose.
 
 This catches standard 12/24-word BIP39 mnemonics as well as legacy 25-word Algorand account mnemonics (which use the same wordlist).
 
@@ -68,7 +68,7 @@ nomonic is a best-effort safety net, not a guarantee. Known limitations:
 - 🔓 **Pre-commit hook is bypassable** — `git commit --no-verify` skips all hooks. The full-repo scanner (`scan-repo`) can be used in CI to catch what hooks miss.
 - 📋 **Staged diffs only (hook mode)** — The pre-commit hook only scans newly added/modified lines. Seed phrases already in the repository history are not caught. Use `scan-repo` for full-repo auditing.
 - 🔀 **Obfuscated phrases are not detected** — Seed words that are base64-encoded, encrypted, split across variables, reversed, or otherwise transformed will not be caught.
-- 🚨 **False positives are possible** — The BIP39 wordlist contains common English words (`abandon`, `ability`, `access`, `art`, `carbon`, `code`, etc.). Technical documentation or prose that happens to use 5+ consecutive BIP39 words will trigger a block. Raise the threshold or use `--no-verify` for legitimate cases.
+- 🚨 **False positives are possible** — The BIP39 wordlist contains common English words (`abandon`, `ability`, `access`, `art`, `carbon`, `code`, etc.). Technical documentation or prose that happens to use 8+ consecutive BIP39 words will trigger a block. Raise the threshold or use `--no-verify` for legitimate cases.
 - 🕳️ **False negatives are possible** — Seed phrases with unusual formatting not covered by the tokenizer (e.g., tab-separated without spaces, embedded in URLs, mixed with non-whitespace delimiters) may not be detected.
 - 🔢 **No checksum validation** — The detector does not verify that the word sequence forms a valid BIP39 mnemonic with correct checksum. It flags any run of BIP39 words meeting the threshold, whether or not it's a valid key.
 
@@ -96,7 +96,7 @@ nomonic is a best-effort safety net, not a guarantee. Known limitations:
 
 ### 🚫 What triggers a block
 
-5 or more consecutive words that are all:
+8 or more consecutive words that are all:
 
 - Present in the [BIP39 English wordlist](https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt) (2048 words)
 - Purely alphabetic after stripping surrounding punctuation
@@ -127,7 +127,7 @@ bash scripts/nomonic/scan-repo.sh
 | `--git`               | (Default) Scan git-tracked files                |
 | `--dir <path>`        | Scan all files in directory recursively         |
 | `--include-lockfiles` | Include lockfiles in scan (excluded by default) |
-| `--threshold <n>`     | Override detection threshold (default: 5)       |
+| `--threshold <n>`     | Override detection threshold (default: 8)       |
 | `--json`              | Output violations as JSON (TypeScript only)     |
 
 ## 🎛️ Configuration
@@ -135,8 +135,8 @@ bash scripts/nomonic/scan-repo.sh
 Adjust the detection threshold via environment variable:
 
 ```bash
-# Require 8+ consecutive words instead of the default 5
-export BIP39_THRESHOLD=8
+# Require 12+ consecutive words instead of the default 8
+export BIP39_THRESHOLD=12
 ```
 
 ## 🔓 Bypassing

@@ -2,11 +2,11 @@
 set -euo pipefail
 
 # nomonic — BIP39 Seed Phrase Repository Scanner
-# Scans all files in a repository for sequences of 5+ consecutive BIP39 mnemonic words.
+# Scans all files in a repository for sequences of 8+ consecutive BIP39 mnemonic words.
 # Usage: bash/scan-repo.sh [--git | --dir <path>] [--include-lockfiles] [--threshold <n>]
 # Portable: Bash 3.2+ (macOS default) and git. No other dependencies.
 
-THRESHOLD=5
+THRESHOLD=8
 MODE="git"
 DIR_PATH="."
 INCLUDE_LOCKFILES=0
@@ -63,17 +63,20 @@ is_bip39() {
 
 # Strip surrounding non-alpha characters from a token and classify it.
 # Sets STRIP_RESULT to: the stripped lowercase word, "SKIP" (entirely non-alpha),
-# or "BREAK" (interior punctuation like hyphens/apostrophes).
+# or "BREAK" (interior punctuation like hyphens/apostrophes, or digits in
+# stripped portions like board[0] or abandon123).
 strip_token() {
   local t="$1"
   # Strip leading non-alpha
-  local core="${t#"${t%%[a-zA-Z]*}"}"
+  local leading="${t%%[a-zA-Z]*}"
+  local core="${t#"$leading"}"
   if [[ -z "$core" ]]; then
     STRIP_RESULT="SKIP"
     return
   fi
   # Strip trailing non-alpha
-  core="${core%"${core##*[a-zA-Z]}"}"
+  local trailing="${core##*[a-zA-Z]}"
+  core="${core%"$trailing"}"
   # Check for interior non-alpha
   case "$core" in
     *[!a-zA-Z]*)
@@ -81,6 +84,12 @@ strip_token() {
       return
       ;;
   esac
+  # If stripped leading/trailing portions contain digits, the token is
+  # likely a code construct (e.g. board[0], abandon123) — disqualify it.
+  if [[ "$leading" =~ [0-9] ]] || [[ "$trailing" =~ [0-9] ]]; then
+    STRIP_RESULT="BREAK"
+    return
+  fi
   # Return lowercase
   STRIP_RESULT=$(echo "$core" | tr '[:upper:]' '[:lower:]')
 }
