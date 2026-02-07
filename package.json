@@ -5,8 +5,8 @@
   "scripts": {
     "test": "vitest run ts",
     "test:coverage": "vitest run ts --coverage --coverage.include=ts --coverage.reporter=text --coverage.reporter=json",
-    "lint": "eslint ts/",
-    "format:check": "prettier --check ts/",
+    "lint": "eslint ts/ && prettier --check ts/",
+    "lint:fix": "eslint ts/ --fix && prettier --write ts/",
     "bench": "vitest bench ts",
     "docs": "typedoc"
   },

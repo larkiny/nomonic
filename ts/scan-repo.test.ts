@@ -36,7 +36,10 @@ function makeTempDir(): string {
 describe('scanFiles', () => {
   it('detects seed phrase in a file', () => {
     const dir = makeTempDir()
-    writeFileSync(join(dir, 'secrets.txt'), 'abandon ability able about above absent absorb abstract')
+    writeFileSync(
+      join(dir, 'secrets.txt'),
+      'abandon ability able about above absent absorb abstract',
+    )
     const result = scanFiles([join(dir, 'secrets.txt')])
     expect(result).toHaveLength(1)
     expect(result[0].file).toContain('secrets.txt')
@@ -52,7 +55,10 @@ describe('scanFiles', () => {
 
   it('scans multiple files', () => {
     const dir = makeTempDir()
-    writeFileSync(join(dir, 'a.txt'), 'abandon ability able about above absent absorb abstract')
+    writeFileSync(
+      join(dir, 'a.txt'),
+      'abandon ability able about above absent absorb abstract',
+    )
     writeFileSync(join(dir, 'b.txt'), 'normal content here')
     writeFileSync(join(dir, 'c.txt'), 'zoo zone zero youth young you yard year')
     const result = scanFiles([
@@ -65,7 +71,10 @@ describe('scanFiles', () => {
 
   it('respects custom threshold', () => {
     const dir = makeTempDir()
-    writeFileSync(join(dir, 'test.txt'), 'abandon ability able about above absent absorb abstract')
+    writeFileSync(
+      join(dir, 'test.txt'),
+      'abandon ability able about above absent absorb abstract',
+    )
     expect(scanFiles([join(dir, 'test.txt')], 10)).toEqual([])
     expect(scanFiles([join(dir, 'test.txt')], 8)).toHaveLength(1)
   })
